@@ -30,11 +30,14 @@ if (-not(Test-Path $msysXzArchive)) {
 
 if (-not(Test-Path PS7Zip)) {
     Write-Output "Dependency not found, downloading it ..."
-    Save-Module -Name PS7Zip -Path .
+    if (-not(Test-Path $env:temp\PSModules)) {
+        New-Item -Path $env:temp\PSModules -ItemType "directory" > $null
+    }
+    Save-Module -Name PS7Zip -Path $env:temp\PSModules
     Write-Output "Done."
 }
 
-$pathToModule = ".\PS7Zip\2.2.0\PS7Zip.psd1"
+$pathToModule = "$env:temp\PSModules\PS7Zip\2.2.0\PS7Zip.psd1"
 if (-not (Get-Command Expand-7Zip -ErrorAction Ignore)) {
     Write-Output "Importing dependency ..."
     Import-Module $pathToModule
@@ -84,7 +87,7 @@ Write-Output "Done."
 
 # # Uninstall
 Write-Output "Cleaning PS module ..."
-Remove-Item -Recurse -Force PS7Zip
+Remove-Item -Recurse -Force $env:temp\PSModules\PS7Zip
 # Remove-Item -Recurse -Force $deployAera\msys64
 Write-Output "Done."
 
