@@ -7,15 +7,36 @@ $deployAera= if ($env:PTN_DEPLOY_AERA) { $env:PTN_DEPLOY_AERA } else { "D:\dne_s
 $installerName="$deployAera\mc3-install.exe"
 $condaDir="$deployAera\miniconda3"
 
+# $ProgressPreference='SilentlyContinue'
+
 function main {
+    if (Test-Path $deployAera\dne_install_miniconda3.lock) {
+        Write-Warning "Lock file already present. A previous installation has been started but have not finished successfully."
+        $confirm = Read-Host -Prompt "Do you want to continue ? [Y/n] "
+        if ($confirm -notIn "", "Y", "y") {
+            Exit
+        }
+    }
     New-Item -itemType File -Force $deployAera\dne_install_miniconda3.lock >> $null
+    # step 1
+    Write-Progress -Id 1 -Activity "Install MiniConda 3" -Status "Check requirements" -PercentComplete (100.0/6.0 * 1)
     check-requirements
+    # step 2
+    Write-Progress -Id 1 -Activity "Install MiniConda 3" -Status "Update conda base env"  -PercentComplete (100.0/6.0 * 2)
     update-conda-base
+    # step 3
+    Write-Progress -Id 1 -Activity "Install MiniConda 3" -Status "Install packages in conda base env"  -PercentComplete (100.0/6.0 * 3)
     install-packages-base
+    # step 4
+    Write-Progress -Id 1 -Activity "Install MiniConda 3" -Status "Upgrade pip in conda base env"  -PercentComplete (100.0/6.0 * 4)
     upgrade-pip-base
     if ($installPySide2) {
+        Write-Progress -Id 1 -Activity "Install MiniConda 3" -Status "Install PySide2 conda base env"  -PercentComplete (100.0/6.0 * 5)
+        # step 5
         install-pyside2
     }
+    # step 6
+    Write-Progress -Id 1 -Activity "Install MiniConda 3" -Status "Install Nimp conda base env"  -PercentComplete (100.0/6.0 * 6)
     install-nimp-base
     Remove-Item -Force $deployAera\dne_install_miniconda3.lock
 }
@@ -23,18 +44,17 @@ function main {
 function check-requirements {
 
     if (-not(Test-Path $installerName)) {
-        Write-Output "Downloading archive 'https://repo.continuum.io/miniconda/Miniconda3-latest-Windows-x86_64.exe' in '$installerName'."
+        Write-Progress -Id 1 -Activity "Install MiniConda 3" -Status "Check requirements" -CurrentOperation "Downloading archive 'https://repo.continuum.io/miniconda/Miniconda3-latest-Windows-x86_64.exe' in '$installerName'."
         Start-BitsTransfer `
             -Source https://repo.continuum.io/miniconda/Miniconda3-latest-Windows-x86_64.exe `
             -Destination $installerName
-        Write-Output "Done."
         # https://github.com/mridgers/clink/releases/download/0.4.9/clink_0.4.9.zip
     } else {
-        Write-Output "Installer already downloaded in '$installerName'"
+        Write-Warning "Installer already downloaded in '$installerName'"
     }
 
     if (-not(Test-Path $condaDir)) {
-        Write-Output "Starting installer in silent mode ..."
+        Write-Progress -Id 1 -Activity "Install MiniConda 3" -Status "Check requirements" -CurrentOperation "Starting installer in silent mode ..."
         Start-Process -Wait `
             -FilePath $installerName `
             -Args "/S",
@@ -43,57 +63,56 @@ function check-requirements {
             "/AddToPath=0",
             "/NoRegistry=1",
             "/D=$condaDir"
-        Write-Output "Done."
     } else {
-        Write-Output "'$condaDir' path exists, skipping installer."
+        Write-Warning "'$condaDir' path exists, skipping installer."
     }
 }
 
 function update-conda-base {
 
-    Write-Output "Updating conda in base env ..."
+    Write-Host -NoNewline "Updating conda in base env ... "
     Start-Process -Wait -FilePath CMD `
         -ArgumentList "/C",
         "$condaDir\Scripts\activate.bat & ",
         "conda update conda -y"
-    Write-Output "Done."
+    Write-Host "Done."
 }
 
 function install-packages-base {
 
-    Write-Output "Installing git, pip, ipython in base env ..."
+    Write-Host -NoNewline "Installing git, pip, ipython in base env ... "
     Start-Process -Wait -FilePath CMD `
         -ArgumentList "/C",
         "$condaDir\Scripts\activate.bat & ",
         "conda install git pip ipython -y"
-    Write-Output "Done."
+    Write-Host "Done."
 }
 
 function upgrade-pip-base {
 
-    Write-Output "Upgrading pip in base env ..."
+    Write-Host -NoNewline "Upgrading pip in base env ... "
     Start-Process -Wait -FilePath CMD `
         -ArgumentList "/C",
         "$condaDir\Scripts\activate.bat & ",
         "python -m pip install --upgrade pip"
-    Write-Output "Done."
+    Write-Host "Done."
 }
 
 function install-pyside2 {
 
-    Write-Output "Installingf PySIde 2 in base env ..."
+    Write-Host -NoNewline "Installingf PySIde 2 in base env ... "
     Start-Process -Wait -FilePath CMD `
         -ArgumentList "/C",
         "$condaDir\Scripts\activate.bat & ",
         "conda install -y",
             "-c conda-forge",
             "PySide2"
-    Write-Output "Done."
+    Write-Host "Done."
 }
 
 function install-nimp-base {
 
-    Write-Output "Installing nimp in the base interpreter ..."
+    Write-Host -NoNewline "Installing nimp in the base interpreter ... "
     Start-Process -Wait -FilePath CMD `
         -ArgumentList "/C",
         "$condaDir\Scripts\activate.bat & ",
@@ -101,11 +120,11 @@ function install-nimp-base {
             "git+https://github.com/dontnod/nimp.git",
             "git+https://github.com/dontnod/bittornado.git",
             "requests"
-    Write-Output "Done."
+    Write-Host "Done."
 }
 
 # if ($createDnepy27) {
-#     Write-Output "Creating dnepy27 env ..."
+#     Write-Host -NoNewline "Creating dnepy27 env ... "
 #     Start-Process -Wait -FilePath CMD `
 #         -ArgumentList "/C",
 #         "$condaDir\Scripts\activate.bat & ",
@@ -121,13 +140,13 @@ function install-nimp-base {
 #                 "-c conda-forge",
 #                 "PySide2"
 #     }
-#     Write-Output "Done."
+#     Write-Host "Done."
 # } else {
-#     Write-Output "Skipping dnepy27 creation."
+#     Write-Host "Skipping dnepy27 creation."
 # }
 
 # if ($createDnepy36) {
-#     Write-Output "Creating dnepy36 env ..."
+#     Write-Host -NoNewline "Creating dnepy36 env ... "
 #         Start-Process -Wait -FilePath CMD `
 #             -ArgumentList "/C",
 #             "$condaDir\Scripts\activate.bat & ",
@@ -143,10 +162,10 @@ function install-nimp-base {
 #                 "-c conda-forge",
 #                 "PySide2"
 #     }
-#     Write-Output "Done."
+#     Write-Host "Done."
 
 #     if ($installNimp) {
-#         Write-Output "Updating nimp in dnepy36 env ..."
+#         Write-Host -NoNewline "Updating nimp in dnepy36 env ... "
 #         Start-Process -Wait -FilePath CMD `
 #         -ArgumentList "/C",
 #         "$condaDir\Scripts\activate.bat dnepy36 &",
@@ -154,10 +173,10 @@ function install-nimp-base {
 #         "git+https://github.com/dontnod/nimp.git", 
 #         "git+https://github.com/dontnod/bittornado.git",
 #         "requests"
-#         Write-Output "Done."
+#         Write-Host "Done."
 #     }
 # } else {
-#     Write-Output "Skipping dnepy36 creation."
+#     Write-Host "Skipping dnepy36 creation."
 # }
 
 main # <- Entry point
