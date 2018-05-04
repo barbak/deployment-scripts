@@ -16,6 +16,8 @@ $sleepTimeBeforeKill = if ($env:PTN_TIMEOUT) { $env:PTN_TIMEOUT } else { 60 }
 # Expand-7Zip $msysTarName .
 ## 7Zip4Powershell est super lent a la decompression :/
 
+New-Item -itemType File -Force $deployAera\dne_install_msys2.lock >> $null
+
 if (-not(Test-Path $msysXzArchive)) {
     Write-Output "Downloading archive 'http://repo.msys2.org/distrib/x86_64/msys2-base-x86_64-20161025.tar.xz' in '$msysXzArchive'."
     Start-BitsTransfer `
@@ -85,6 +87,8 @@ Write-Output "Cleaning PS module ..."
 Remove-Item -Recurse -Force PS7Zip
 # Remove-Item -Recurse -Force $deployAera\msys64
 Write-Output "Done."
+
+Remove-Item -Force $deployAera\dne_install_msys2.lock
 
 Start-Sleep 3
 

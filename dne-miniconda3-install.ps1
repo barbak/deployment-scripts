@@ -8,6 +8,7 @@ $installerName="$deployAera\mc3-install.exe"
 $condaDir="$deployAera\miniconda3"
 
 function main {
+    New-Item -itemType File -Force $deployAera\dne_install_miniconda3.lock >> $null
     check-requirements
     update-conda-base
     install-packages-base
@@ -16,6 +17,7 @@ function main {
         install-pyside2
     }
     install-nimp-base
+    Remove-Item -Force $deployAera\dne_install_miniconda3.lock
 }
 
 function check-requirements {
@@ -57,7 +59,7 @@ function update-conda-base {
     Write-Output "Done."
 }
 
-function install-base-packages {
+function install-packages-base {
 
     Write-Output "Installing git, pip, ipython in base env ..."
     Start-Process -Wait -FilePath CMD `
