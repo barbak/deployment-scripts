@@ -1,15 +1,53 @@
-$createDnepy27= if ($env:PTN_DNEPY27) { $true } else { $false }
-$createDnepy36= if ($env:PTN_DNEPY37) { $true } else { $false }
-$installNimp= if ($env:PTN_GET_NIMP) { $true } else { $false }
-$installPySide2= if ($env:PTN_GET_PYSIDE2) { $true } else { $false }
+<#
+.SYNOPSIS
+    Install Miniconda 3 on your system.
 
-$deployAera= if ($env:PTN_DEPLOY_AERA) { $env:PTN_DEPLOY_AERA } else { "D:\dne_seeds\DeployAera" }
-$installerName="$deployAera\mc3-install.exe"
-$condaDir="$deployAera\miniconda3"
+.DESCRIPTION
+    Install Miniconda3 on your system in the deploy area by downloading the
+    installer to installerName and executing it with some options.
 
+.PARAMETER deployaera
+    Specify where the target directory to install Miniconda is.
+
+.PARAMETER installerName
+    Fullpath where the installer should be or where it will be be downloaded.
+
+.PARAMETER createDnePy27
+    (Deactivated) Does the installer should create another conda env with python2.7.
+
+.PARAMETER createDnePy36
+    (Deactivated) Does the installer should create another conda env with python 3.6.
+
+.PARAMETER installPyside2
+    Does Pyside have to be installed (conda base and potentially dnepy36 if created).
+
+.PARAMETER installNimp
+    Does Nimp will be installed in base environment and addtional conda envs.
+
+.NOTES
+    Originally, the script was intended to be used by Patoune.
+#>
+
+param(
+    [Parameter(Mandatory=$true)]
+    [Alias("da")]
+    [string]$deployAera,
+    [Alias("in")]
+    [string]$installerName="$deployAera\mc3-install.exe",
+    [Alias("27")]
+    [bool]$createDnepy27=$false,
+    [Alias("36")]
+    [bool]$createDnepy36=$false,
+    [Alias("ps2")]
+    [bool]$installPySide2=$false,
+    [Alias("nimp")]
+    [bool]$installNimp=$true
+)
+
+$condaDir = "$deployAera\miniconda3"
 # $ProgressPreference='SilentlyContinue'
 
-function main {
+function Install-Miniconda3 {
     if (Test-Path $deployAera\dne_install_miniconda3.lock) {
         Write-Warning "Lock file already present. A previous installation has been started but have not finished successfully."
         $confirm = Read-Host -Prompt "Do you want to continue ? [Y/n] "
@@ -37,10 +75,13 @@ function main {
     }
     # step 6
     Write-Progress -Id 1 -Activity "Install MiniConda 3" -Status "Install Nimp conda base env"  -PercentComplete (100.0/6.0 * 6)
-    install-nimp-base
+    if ($installNimp) {
+        install-nimp-base
+    }
     Remove-Item -Force $deployAera\dne_install_miniconda3.lock
 }
 
+# internal functions
 function check-requirements {
 
     if (-not(Test-Path $installerName)) {
@@ -100,7 +141,7 @@ function upgrade-pip-base {
 
 function install-pyside2 {
 
-    Write-Host -NoNewline "Installingf PySIde 2 in base env ... "
+    Write-Host -NoNewline "Installing PySide 2 in base env ... "
     Start-Process -Wait -FilePath CMD `
         -ArgumentList "/C",
         "$condaDir\Scripts\activate.bat & ",
@@ -179,7 +220,5 @@ function install-nimp-base {
 #     Write-Host "Skipping dnepy36 creation."
 # }
 
-main # <- Entry point
-
-Start-Sleep 3
-Pause
+# Entry Point
+Install-Miniconda3
