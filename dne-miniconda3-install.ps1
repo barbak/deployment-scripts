@@ -79,6 +79,7 @@ function Install-Miniconda3 {
         install-nimp-base
     }
     Remove-Item -Force $deployAera\dne_install_miniconda3.lock
+    Write-Progress -Id 1 -Activity "Install MiniConda 3" -Completed
 }
 
 # internal functions

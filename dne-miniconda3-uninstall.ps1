@@ -1,13 +1,32 @@
-$deployAera= if ($env:PTN_DEPLOY_AERA) {$env:PTN_DEPLOY_AERA} else {"D:\dne_seeds\DeployAera"}
+<#
+.SYNOPSIS
+    Uninstall Miniconda 3 on your system.
+
+.DESCRIPTION
+    cf. synopsis.
+
+.PARAMETER deployaera
+    Specify where the miniconda3 directory is.
+
+.NOTES
+    Originally, the script was intended to be used by Patoune.
+#>
+
+param(
+    [Parameter(Mandatory=$true)]
+    [Alias("da")]
+    [string]$deployAera
+)
+
 $condaDir="$deployAera\miniconda3"
 $uninstallerName="$condaDir\Uninstall-Miniconda3.exe"
 
 if (Test-Path "$condaDir") {
-    Write-Output "Removing $condaDir ..."
+    Write-Host -NoNewline "Removing $condaDir ..."
     Start-Process -Wait -FilePath $uninstallerName -ArgumentList "/S"
-    Write-Output "Done."
+    Write-Host " Done."
 } else {
-    Write-Output "Nothing to remove in $deployAera."
+    Write-Host "Nothing to remove in $deployAera."
 }
 
 Start-Sleep 3
