@@ -90,9 +90,30 @@ function check-requirements {
         Start-BitsTransfer `
             -Source https://repo.continuum.io/miniconda/Miniconda3-latest-Windows-x86_64.exe `
             -Destination $installerName
+
+        Write-Progress -Id 1 -Activity "Install MiniConda 3" -Status "Check requirements" -CurrentOperation "Downloading archive 'https://github.com/mridgers/clink/releases/download/0.4.9/clink_0.4.9.zip' in '$installerName'."
+        Start-BitsTransfer `
+            -Source https://github.com/mridgers/clink/releases/download/0.4.9/clink_0.4.9.zip `
+            -Destination $deployAera
+
         # https://github.com/mridgers/clink/releases/download/0.4.9/clink_0.4.9.zip
     } else {
-        Write-Warning "Installer already downloaded in '$installerName'"
+        Write-Warning "Installer already downloaded in '$installerName'."
+    }
+
+    # Adding clink to have a pseudo readline behaviour ... IMOO, a must have.
+    if (-not(Test-Path $deployAera/clink_0.4.9.zip)) {
+        Write-Progress -Id 1 -Activity "Install MiniConda 3" -Status "Check requirements" -CurrentOperation "Downloading archive 'https://github.com/mridgers/clink/releases/download/0.4.9/clink_0.4.9.zip' in '$deployAera'."
+        # Start-BitsTransfer `
+        #     -Source https://github.com/mridgers/clink/releases/download/0.4.9/clink_0.4.9.zip `
+        #     -Destination $deployAera
+        # Start-BitsTransfer has difficulties with redirections
+        # see https://powershell.org/forums/topic/bits-transfer-with-github/ for details.
+        BITSADMIN /TRANSFER "Downloading Clink ..." /DYNAMIC /DOWNLOAD /priority FOREGROUND `
+            https://github.com/mridgers/clink/releases/download/0.4.9/clink_0.4.9.zip `
+            $deployAera\clink_0.4.9.zip
+    } else {
+        Write-Warning "Clink archive already downloaded in '$deployAera'."
     }
 
     if (-not(Test-Path $condaDir)) {
@@ -107,6 +128,13 @@ function check-requirements {
             "/D=$condaDir"
     } else {
         Write-Warning "'$condaDir' path exists, skipping installer."
+    }
+
+    if (-not(Test-Path $deployAera\clink_0.4.9)) {
+        Write-Progress -Id 1 -Activity "Install MiniConda 3" -Status "Check requirements" -CurrentOperation "Unzipping clink archive ..."
+        Expand-Archive -Path $deployAera\clink_0.4.9.zip -DestinationPath $deployAera
+    } else {
+        Write-Warning "'$deployAera\clink_0.4.9' path exists, skipping uncompress."
     }
 }
 
