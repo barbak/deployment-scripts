@@ -37,6 +37,7 @@ param(
 Write-Host "Sorry for showing me ..."
 
 Push-Location $workingDirectory
+$env:NIMP_LOG_FILE="$workingDirectory\patoune-nimp.log"
 Start-Process  $env:windir\System32\cmd.exe `
     -ArgumentList "/K $deployAera\clink_0.4.9\clink_x64.exe inject & $deployAera\miniconda3\Scripts\activate.bat"
 Pop-Location
