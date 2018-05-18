@@ -25,19 +25,32 @@
     The two examples have exactly the same behaviour.
     So to dodge the problem, we start a process that start a powershel that execute a script which 
     start a cmd and it works exactly has if you have done it by hand. Crazy world ...
+
+.PARAMETER execPowerShell
+    To have a PowerShell spawn with the miniconda environment.
+    (reason: no activate.ps1 available in miniconda to launch directly the PowerShell with the conda env)
 #>
 
 param(
     [Parameter(Mandatory=$true)]
     [Alias("da")]
     [string]$deployAera,
-    [string]$workingDirectory=$deployAera
+    [Alias("wd")]
+    [string]$workingDirectory=$deployAera,
+    [Alias("ps")]
+    [bool]$execPowerShell=$false
 )
 
 Write-Host "Sorry for showing me ..."
-
 Push-Location $workingDirectory
+$arg = "/K $deployAera\clink_0.4.9\clink_x64.exe inject & $deployAera\miniconda3\Scripts\activate.bat"
+if ($execPowerShell -eq $true) {
+    Write-Host "Will have a PowerShell."
+    $arg += " & $env:windir\System32\WindowsPowerShell\v1.0\powershell.exe"
+} else {
+    Write-Host "Will have a CMD."
+}
 $env:NIMP_LOG_FILE="$workingDirectory\patoune-nimp.log"
 Start-Process  $env:windir\System32\cmd.exe `
-    -ArgumentList "/K $deployAera\clink_0.4.9\clink_x64.exe inject & $deployAera\miniconda3\Scripts\activate.bat"
+    -ArgumentList $arg
 Pop-Location
