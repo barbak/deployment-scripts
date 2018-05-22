@@ -129,6 +129,12 @@ function setup-install {
     Start-Process -Wait -FilePath $shCmd `
         -ArgumentList 'dash -c "grep -q ''^PATH.*mingw64'' ~/.bash_profile || echo ''PATH=/mingw64/bin:/mingw32/bin:$PATH; export PATH'' >> ~/.bash_profile"'
     Write-Host " Done."
+
+    Write-Host -NoNewline "Customize mintty cursor ..."
+    # Making custom cursor to have a visual marker (blocky cool cyan cursor)
+    Start-Process -Wait -FilePath $shCmd `
+        -ArgumentList 'dash -c "echo \"CursorColour=0,128,255\nCursorType=block\" > ~/.minttyrc"'
+    Write-Host " Done."
 }
 
 function update-install {
