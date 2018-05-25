@@ -6,7 +6,7 @@
     Install Miniconda3 on your system in the deploy area by downloading the
     installer to installerName and executing it with some options.
 
-.PARAMETER deployaera
+.PARAMETER deployArea
     Specify where the target directory to install Miniconda is.
 
 .PARAMETER installerName
@@ -31,9 +31,9 @@
 param(
     [Parameter(Mandatory=$true)]
     [Alias("da")]
-    [string]$deployAera,
+    [string]$deployArea,
     [Alias("in")]
-    [string]$installerName="$deployAera\mc3-install.exe",
+    [string]$installerName="$deployArea\mc3-install.exe",
     [Alias("27")]
     [bool]$createDnepy27=$false,
     [Alias("36")]
@@ -44,18 +44,18 @@ param(
     [bool]$installNimp=$true
 )
 
-$condaDir = "$deployAera\miniconda3"
+$condaDir = "$deployArea\miniconda3"
 # $ProgressPreference='SilentlyContinue'
 
 function Install-Miniconda3 {
-    if (Test-Path $deployAera\dne_install_miniconda3.lock) {
+    if (Test-Path $deployArea\dne_install_miniconda3.lock) {
         Write-Warning "Lock file already present. A previous installation has been started but have not finished successfully."
         $confirm = Read-Host -Prompt "Do you want to continue ? [Y/n] "
         if ($confirm -notIn "", "Y", "y") {
             Exit
         }
     }
-    New-Item -itemType File -Force $deployAera\dne_install_miniconda3.lock >> $null
+    New-Item -itemType File -Force $deployArea\dne_install_miniconda3.lock >> $null
     # step 1
     Write-Progress -Id 1 -Activity "Install MiniConda 3" -Status "Check requirements" -PercentComplete (100.0/6.0 * 1)
     check-requirements
@@ -78,7 +78,7 @@ function Install-Miniconda3 {
     if ($installNimp) {
         install-nimp-base
     }
-    Remove-Item -Force $deployAera\dne_install_miniconda3.lock
+    Remove-Item -Force $deployArea\dne_install_miniconda3.lock
     Write-Progress -Id 1 -Activity "Install MiniConda 3" -Completed
 }
 
@@ -94,7 +94,7 @@ function check-requirements {
         Write-Progress -Id 1 -Activity "Install MiniConda 3" -Status "Check requirements" -CurrentOperation "Downloading archive 'https://github.com/mridgers/clink/releases/download/0.4.9/clink_0.4.9.zip' in '$installerName'."
         Start-BitsTransfer `
             -Source https://github.com/mridgers/clink/releases/download/0.4.9/clink_0.4.9.zip `
-            -Destination $deployAera
+            -Destination $deployArea
 
         # https://github.com/mridgers/clink/releases/download/0.4.9/clink_0.4.9.zip
     } else {
@@ -102,18 +102,18 @@ function check-requirements {
     }
 
     # Adding clink to have a pseudo readline behaviour ... IMOO, a must have.
-    if (-not(Test-Path $deployAera/clink_0.4.9.zip)) {
-        Write-Progress -Id 1 -Activity "Install MiniConda 3" -Status "Check requirements" -CurrentOperation "Downloading archive 'https://github.com/mridgers/clink/releases/download/0.4.9/clink_0.4.9.zip' in '$deployAera'."
+    if (-not(Test-Path $deployArea/clink_0.4.9.zip)) {
+        Write-Progress -Id 1 -Activity "Install MiniConda 3" -Status "Check requirements" -CurrentOperation "Downloading archive 'https://github.com/mridgers/clink/releases/download/0.4.9/clink_0.4.9.zip' in '$deployArea'."
         # Start-BitsTransfer `
         #     -Source https://github.com/mridgers/clink/releases/download/0.4.9/clink_0.4.9.zip `
-        #     -Destination $deployAera
+        #     -Destination $deployArea
         # Start-BitsTransfer has difficulties with redirections
         # see https://powershell.org/forums/topic/bits-transfer-with-github/ for details.
         BITSADMIN /TRANSFER "Downloading Clink ..." /DYNAMIC /DOWNLOAD /priority FOREGROUND `
             https://github.com/mridgers/clink/releases/download/0.4.9/clink_0.4.9.zip `
-            $deployAera\clink_0.4.9.zip
+            $deployArea\clink_0.4.9.zip
     } else {
-        Write-Warning "Clink archive already downloaded in '$deployAera'."
+        Write-Warning "Clink archive already downloaded in '$deployArea'."
     }
 
     if (-not(Test-Path $condaDir)) {
@@ -130,11 +130,11 @@ function check-requirements {
         Write-Warning "'$condaDir' path exists, skipping installer."
     }
 
-    if (-not(Test-Path $deployAera\clink_0.4.9)) {
+    if (-not(Test-Path $deployArea\clink_0.4.9)) {
         Write-Progress -Id 1 -Activity "Install MiniConda 3" -Status "Check requirements" -CurrentOperation "Unzipping clink archive ..."
-        Expand-Archive -Path $deployAera\clink_0.4.9.zip -DestinationPath $deployAera
+        Expand-Archive -Path $deployArea\clink_0.4.9.zip -DestinationPath $deployArea
     } else {
-        Write-Warning "'$deployAera\clink_0.4.9' path exists, skipping uncompress."
+        Write-Warning "'$deployArea\clink_0.4.9' path exists, skipping uncompress."
     }
 }
 

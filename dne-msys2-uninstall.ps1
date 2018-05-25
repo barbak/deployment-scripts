@@ -5,7 +5,7 @@
 .DESCRIPTION
     cf. synopsis.
 
-.PARAMETER deployaera
+.PARAMETER deployArea
     Specify where the MSYS2 directory is.
 
 .NOTES
@@ -15,16 +15,16 @@
 param(
     [Parameter(Mandatory=$true)]
     [Alias("da")]
-    [string]$deployAera
+    [string]$deployArea
 )
 
-if (Test-Path "$deployAera\msys64") {
-    Write-Host -NoNewline "Removing $deployAera\msys64 ..."
-    Remove-Item -Recurse -Force $deployAera\msys64
+if (Test-Path "$deployArea\msys64") {
+    Write-Host -NoNewline "Removing $deployArea\msys64 ..."
+    Remove-Item -Recurse -Force $deployArea\msys64
     Write-Host " Done."
 } 
 else {
-    Write-Host "Nothing to remove in $deployAera."
+    Write-Host "Nothing to remove in $deployArea."
 }
 
 Start-Sleep 3

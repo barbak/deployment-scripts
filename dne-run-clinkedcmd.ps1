@@ -9,11 +9,11 @@
 
         PowerShell
             .Create()
-            .AddScript(@"$deployAera=""C:\Patoune\DeployAera"")
-            .AddScript(@"Start-Process C:\Windows\System32\cmd.exe -ArgumentList ""/K $deployAera\clink_0.4.9\clink_x64.exe inject & $deployAera\miniconda3\Scripts\activate.bat""")
+            .AddScript(@"$deployArea=""C:\Patoune\deployArea"")
+            .AddScript(@"Start-Process C:\Windows\System32\cmd.exe -ArgumentList ""/K $deployArea\clink_0.4.9\clink_x64.exe inject & $deployArea\miniconda3\Scripts\activate.bat""")
             .Invoke();
 
-        string deployDirectory = @"C:\Patoune\DeployAera";
+        string deployDirectory = @"C:\Patoune\deployArea";
         string windir = Environment.GetEnvironmentVariable("WINDIR");
         ProcessStartInfo psi = new ProcessStartInfo();
         psi.FileName = $@"{windir}\System32\cmd.exe";
@@ -34,16 +34,16 @@
 param(
     [Parameter(Mandatory=$true)]
     [Alias("da")]
-    [string]$deployAera,
+    [string]$deployArea,
     [Alias("wd")]
-    [string]$workingDirectory=$deployAera,
+    [string]$workingDirectory=$deployArea,
     [Alias("ps")]
     [bool]$execPowerShell=$false
 )
 
 Write-Host "Sorry for showing me ..."
 Push-Location $workingDirectory
-$arg = "/K $deployAera\clink_0.4.9\clink_x64.exe inject & $deployAera\miniconda3\Scripts\activate.bat"
+$arg = "/K $deployArea\clink_0.4.9\clink_x64.exe inject & $deployArea\miniconda3\Scripts\activate.bat"
 if ($execPowerShell -eq $true) {
     Write-Host "Will have a PowerShell."
     $arg += " & $env:windir\System32\WindowsPowerShell\v1.0\powershell.exe"

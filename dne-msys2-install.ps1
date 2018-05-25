@@ -6,7 +6,7 @@
     Install MSYS2 on your system in the deploy area by downloading the archive
     and deploying it in the deploy aera.
 
-.PARAMETER deployAera
+.PARAMETER deployArea
     Specify where the target directory to install MSYS2 is.
 
 .PARAMETER sleepTimeBeforeKill
@@ -24,18 +24,18 @@
 param(
     [Parameter(Mandatory=$true)]
     [Alias("da")]
-    [string]$deployAera,
+    [string]$deployArea,
     [Alias("timeout")]
     [int]$sleepTimeBeforeKill=60,
     [Alias("nimp")]
     [bool]$installNimp=$true
 )
 
-$msysXzArchive="$deployAera\msys2-base-x86_64-20161025.tar.xz"
-$msysTarName="$deployAera\msys2-base-x86_64-20161025.tar"
-$shCmd="$deployAera\msys64\msys2.exe"
+$msysXzArchive="$deployArea\msys2-base-x86_64-20161025.tar.xz"
+$msysTarName="$deployArea\msys2-base-x86_64-20161025.tar"
+$shCmd="$deployArea\msys64\msys2.exe"
 
-# Expand-Archive -Path $msysZipArchive -DestinationPath $deployAera
+# Expand-Archive -Path $msysZipArchive -DestinationPath $deployArea
 # Save-Module -Name 7Zip4Powershell -Path .
 # $pathToModule = ".\7Zip4Powershell\1.8.0\7Zip4PowerShell.psd1"
 
@@ -43,19 +43,19 @@ $shCmd="$deployAera\msys64\msys2.exe"
 #     Import-Module $pathToModule
 # }
 
-# Expand-7Zip $msysXzArchive . #$deployAera
+# Expand-7Zip $msysXzArchive . #$deployArea
 # Expand-7Zip $msysTarName .
 ## 7Zip4Powershell est super lent a la decompression :/
 
 function Install-MSYS2 {
-    if (Test-Path $deployAera\dne_install_msys2.lock) {
+    if (Test-Path $deployArea\dne_install_msys2.lock) {
         Write-Warning "Lock file already present. A previous installation has been started but have not finished successfully."
         $confirm = Read-Host -Prompt "Do you want to continue ? [Y/n] "
         if ($confirm -notIn "", "Y", "y") {
             Exit
         }
     }
-    New-Item -itemType File -Force $deployAera\dne_install_msys2.lock >> $null
+    New-Item -itemType File -Force $deployArea\dne_install_msys2.lock >> $null
     # step1
     Write-Progress -Id 1 -Activity "Install MSYS2" -Status "Materialize dependencies" -PercentComplete (100.0/7.0 * 1)
     materialize-dependencies
@@ -79,7 +79,7 @@ function Install-MSYS2 {
     # step 7
     Write-Progress -Id 1 -Activity "Install MSYS2" -Status "Cleaning" -PercentComplete (100.0/7.0 * 7)
     clean-deps
-    Remove-Item -Force $deployAera\dne_install_msys2.lock
+    Remove-Item -Force $deployArea\dne_install_msys2.lock
     Write-Progress -Id 1 -Activity "Install MSYS2" -Completed
 }
 
@@ -112,9 +112,9 @@ function materialize-dependencies {
 }
 
 function extract-archive {
-    Write-Host -NoNewline "Extracting archives '$msysXzArchive' to '$deployAera' ..."
-    Expand-7Zip -FullName $msysXzArchive -DestinationPath $deployAera
-    Expand-7Zip -FullName $msysTarName -DestinationPath $deployAera -Remove
+    Write-Host -NoNewline "Extracting archives '$msysXzArchive' to '$deployArea' ..."
+    Expand-7Zip -FullName $msysXzArchive -DestinationPath $deployArea
+    Expand-7Zip -FullName $msysTarName -DestinationPath $deployArea -Remove
     Write-Host " Done."
 }
 
@@ -173,7 +173,7 @@ function clean-deps {
     Write-Host -NoNewline "Cleaning PS module ..."
     # Have to use get-item because powershell ...
     Remove-Item -Recurse -Force (Get-Item "$env:temp\PSModules\PS7Zip").FullName
-    # Remove-Item -Recurse -Force $deployAera\msys64
+    # Remove-Item -Recurse -Force $deployArea\msys64
     Write-Host " Done."
 }
 

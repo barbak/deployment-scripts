@@ -5,7 +5,7 @@
 .DESCRIPTION
     cf. synopsis.
 
-.PARAMETER deployaera
+.PARAMETER deployArea
     Specify where the miniconda3 directory is.
 
 .NOTES
@@ -15,10 +15,10 @@
 param(
     [Parameter(Mandatory=$true)]
     [Alias("da")]
-    [string]$deployAera
+    [string]$deployArea
 )
 
-$condaDir="$deployAera\miniconda3"
+$condaDir="$deployArea\miniconda3"
 $uninstallerName="$condaDir\Uninstall-Miniconda3.exe"
 
 if (Test-Path "$condaDir") {
@@ -26,7 +26,7 @@ if (Test-Path "$condaDir") {
     Start-Process -Wait -FilePath $uninstallerName -ArgumentList "/S"
     Write-Host " Done."
 } else {
-    Write-Host "Nothing to remove in $deployAera."
+    Write-Host "Nothing to remove in $deployArea."
 }
 
 Start-Sleep 3
