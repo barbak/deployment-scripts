@@ -90,13 +90,7 @@ function check-requirements {
         Start-BitsTransfer `
             -Source https://repo.continuum.io/miniconda/Miniconda3-latest-Windows-x86_64.exe `
             -Destination $installerName
-
         Write-Progress -Id 1 -Activity "Install MiniConda 3" -Status "Check requirements" -CurrentOperation "Downloading archive 'https://github.com/mridgers/clink/releases/download/0.4.9/clink_0.4.9.zip' in '$installerName'."
-        Start-BitsTransfer `
-            -Source https://github.com/mridgers/clink/releases/download/0.4.9/clink_0.4.9.zip `
-            -Destination $deployArea
-
-        # https://github.com/mridgers/clink/releases/download/0.4.9/clink_0.4.9.zip
     } else {
         Write-Warning "Installer already downloaded in '$installerName'."
     }
