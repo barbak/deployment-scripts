@@ -31,8 +31,10 @@ param(
     [bool]$installNimp=$true
 )
 
-$msysXzArchive="$deployArea\msys2-base-x86_64-20161025.tar.xz"
-$msysTarName="$deployArea\msys2-base-x86_64-20161025.tar"
+# $msysXzArchive="$deployArea\msys2-base-x86_64-20161025.tar.xz"
+# $msysTarName="$deployArea\msys2-base-x86_64-20161025.tar"
+$msysXzArchive="$deployArea\msys2-base-x86_64-20180531.tar.xz"
+$msysTarName="$deployArea\msys2-base-x86_64-20180531.tar"
 $shCmd="$deployArea\msys64\msys2.exe"
 
 # Expand-Archive -Path $msysZipArchive -DestinationPath $deployArea
@@ -85,10 +87,13 @@ function Install-MSYS2 {
 
 function materialize-dependencies {
     if (-not(Test-Path $msysXzArchive)) {
-        Write-Host -NoNewline "Downloading archive 'http://repo.msys2.org/distrib/x86_64/msys2-base-x86_64-20161025.tar.xz' in '$msysXzArchive'."
+        # Write-Host -NoNewline "Downloading archive 'http://repo.msys2.org/distrib/x86_64/msys2-base-x86_64-20161025.tar.xz' in '$msysXzArchive'."
+        # http://repo.msys2.org/distrib/x86_64/msys2-base-x86_64-20180531.tar.xz
+        Write-Host -NoNewline "Downloading archive 'http://repo.msys2.org/distrib/x86_64/msys2-base-x86_64-20180531.tar.xz' in '$msysXzArchive'."
         Start-BitsTransfer `
-            -Source http://repo.msys2.org/distrib/x86_64/msys2-base-x86_64-20161025.tar.xz `
+            -Source http://repo.msys2.org/distrib/x86_64/msys2-base-x86_64-20180531.tar.xz `
             -Destination $msysXzArchive
+
         Write-Host " Done."
     } else {
       Write-Host "Archive already downloaded in '$msysXzArchive'"
@@ -138,6 +143,7 @@ function setup-install {
 }
 
 function update-install {
+    Write-Host "/!\ Shitty part ..."
     Write-Host -NoNewline "Updating base install with potentially downgraded elements ..."
     # To update the system with some conflicts we have to do this ...
     Start-Process -Wait -FilePath $shCmd `
@@ -145,9 +151,20 @@ function update-install {
     Write-Host " Done."
 
     # Now we can use it as expected
-    Write-Host -NoNewline "Updating base install ..."
-    Start-Process -Wait -FilePath $shCmd `
+    # (Almost :/ -- Pseudo-Fix: 2018/06/25)
+    # We are stuck because a gpg-agent process is spawned and is never returning.
+    Write-Host "/!\ More shitty part ..."
+    Write-Host "Updating base install ..."
+    Start-Process -FilePath $shCmd `
         -ArgumentList "pacman -Syu --noconfirm"
+    Write-Host "Tryin to get gpg-agent to be spawned in $sleepTimeBeforeKill seconds ..."
+    Start-Sleep $sleepTimeBeforeKill
+    $gpgProc = Get-Process gpg-agent
+    Write-Host -NoNewline "Killing gpg-process id "
+    Write-Host -NoNewline $gpgProc.id
+    Write-Host -NoNewline "in 10 seconds ..."
+    Start-Sleep 10
+    Stop-Process -id $gpgProc.id -Force
     Write-Host " Done."
 }
 
