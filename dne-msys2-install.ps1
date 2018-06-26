@@ -143,9 +143,10 @@ function setup-install {
 }
 
 function update-install {
-    Write-Host "/!\ Shitty part ..."
+    Write-Host "/!\ Kludgy part ..."
     Write-Host -NoNewline "Updating base install with potentially downgraded elements ..."
     # To update the system with some conflicts we have to do this ...
+    Write-Host " If the msys2 windows is stucked, it will be automatically closed in $sleepTimeBeforeKill seconds."
     Start-Process -Wait -FilePath $shCmd `
         -ArgumentList "dash -c '(echo $sleepTimeBeforeKill seconds before exiting && sleep $sleepTimeBeforeKill && kill `$`$)& yes | pacman -Suy'"
     Write-Host " Done."
@@ -153,7 +154,7 @@ function update-install {
     # Now we can use it as expected
     # (Almost :/ -- Pseudo-Fix: 2018/06/25)
     # We are stuck because a gpg-agent process is spawned and is never returning.
-    Write-Host "/!\ More shitty part ..."
+    Write-Host "/!\ Kludgier ..."
     Write-Host "Updating base install ..."
     Start-Process -FilePath $shCmd `
         -ArgumentList "pacman -Syu --noconfirm"
@@ -162,7 +163,7 @@ function update-install {
     $gpgProc = Get-Process gpg-agent
     Write-Host -NoNewline "Killing gpg-process id "
     Write-Host -NoNewline $gpgProc.id
-    Write-Host -NoNewline "in 10 seconds ..."
+    Write-Host -NoNewline " in 10 seconds ..."
     Start-Sleep 10
     Stop-Process -id $gpgProc.id -Force
     Write-Host " Done."
