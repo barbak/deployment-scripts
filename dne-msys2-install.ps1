@@ -167,6 +167,12 @@ function update-install {
     Start-Sleep 10
     Stop-Process -id $gpgProc.id -Force
     Write-Host " Done."
+
+    # The previous should be only the following lines
+    # Write-Host "Updating base install ..."
+    # Start-Process -Wait -FilePath $shCmd `
+    #     -ArgumentList "pacman -Syu --noconfirm"
+    # Write-Host " Done."
 }
 
 function install-packages {
