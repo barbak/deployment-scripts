@@ -50,7 +50,7 @@ if ($execPowerShell -eq $true) {
 } else {
     Write-Host "Will have a CMD."
 }
-$env:NIMP_LOG_FILE="$workingDirectory\patoune-nimp.log"
+$env:NIMP_LOG_FILE="$workingDirectory\Engine\Saved\Logs\patoune-nimp.log"
 Start-Process  $env:windir\System32\cmd.exe `
     -ArgumentList $arg
 Pop-Location
