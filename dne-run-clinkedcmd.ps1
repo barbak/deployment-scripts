@@ -42,6 +42,13 @@ param(
 )
 
 Write-Host "Sorry for showing me ..."
+
+$logDirectory = [System.IO.Path]::GetFullPath([System.IO.Path]::Combine("$workingDirectory", ".nimp", "logs"))
+if ( -Not (Test-Path $logDirectory) ) {
+	New-Item -ItemType directory $logDirectory | Out-Null
+}
+$env:NIMP_LOG_FILE = [System.IO.Path]::Combine("$logDirectory", "patoune-nimp.log")
+
 Push-Location $workingDirectory
 $arg = "/K $deployArea\clink_0.4.9\clink_x64.exe inject & $deployArea\miniconda3\Scripts\activate.bat"
 if ($execPowerShell -eq $true) {
@@ -50,7 +57,5 @@ if ($execPowerShell -eq $true) {
 } else {
     Write-Host "Will have a CMD."
 }
-$env:NIMP_LOG_FILE="$workingDirectory\Engine\Saved\Logs\patoune-nimp.log"
-Start-Process  $env:windir\System32\cmd.exe `
-    -ArgumentList $arg
+Start-Process  $env:windir\System32\cmd.exe -ArgumentList $arg
 Pop-Location
