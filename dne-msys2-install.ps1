@@ -130,9 +130,9 @@ function setup-install {
     Write-Host " Done."
 
     # Patching path ...
-    Write-Host -NoNewline "Patching bash path to have mingw%2d/bin in path ..."
+    Write-Host -NoNewline "Patching bash path to have mingw%2d/bin and C:\\Program Files\\Perforce in path ..."
     Start-Process -Wait -FilePath $shCmd `
-        -ArgumentList 'dash -c "grep -q ''^PATH.*mingw64'' ~/.bash_profile || echo ''PATH=/mingw64/bin:/mingw32/bin:$PATH; export PATH'' >> ~/.bash_profile"'
+        -ArgumentList 'dash -c "grep -q ''^PATH.*mingw64'' ~/.bash_profile || echo ''PATH=/mingw64/bin:/mingw32/bin:$PATH:/c/Program\ Files/Perforce; export PATH'' >> ~/.bash_profile"'
     Write-Host " Done."
 
     Write-Host -NoNewline "Customize mintty cursor ..."
