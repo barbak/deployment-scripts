@@ -26,7 +26,7 @@ param(
     [Alias("da")]
     [string]$deployArea,
     [Alias("timeout")]
-    [int]$sleepTimeBeforeKill=60,
+    [int]$sleepTimeBeforeKill=90,
     [Alias("nimp")]
     [bool]$installNimp=$true
 )
