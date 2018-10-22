@@ -107,7 +107,7 @@ function check-requirements {
             https://github.com/mridgers/clink/releases/download/0.4.9/clink_0.4.9.zip `
             $deployArea\clink_0.4.9.zip
     } else {
-        Write-Warning "Clink archive already downloaded in '$deployArea'."
+        Write-Warning "Clink archive already downloaded in '$deployArea\clink_0.4.9.zip'."
     }
 
     if (-not(Test-Path $condaDir)) {
