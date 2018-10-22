@@ -26,7 +26,7 @@ param(
     [Alias("da")]
     [string]$deployArea,
     [Alias("timeout")]
-    [int]$sleepTimeBeforeKill=90,
+    [int]$sleepTimeBeforeKill=60,
     [Alias("nimp")]
     [bool]$installNimp=$true
 )
@@ -153,18 +153,33 @@ function update-install {
 
     # Now we can use it as expected
     # (Almost :/ -- Pseudo-Fix: 2018/06/25)
+    # Still necessary at 2018/10/22
     # We are stuck because a gpg-agent process is spawned and is never returning.
     Write-Host "/!\ Kludgier ..."
     Write-Host "Updating base install ..."
-    Start-Process -FilePath $shCmd `
+    $msProc = Start-Process -FilePath $shCmd `
         -ArgumentList "pacman -Syu --noconfirm"
     Write-Host "Tryin to get gpg-agent to be spawned in $sleepTimeBeforeKill seconds ..."
-    Start-Sleep $sleepTimeBeforeKill
-    $gpgProc = Get-Process gpg-agent
-    Write-Host -NoNewline "Killing gpg-process id "
-    Write-Host -NoNewline $gpgProc.id
-    Write-Host -NoNewline " in 10 seconds ..."
-    Start-Sleep 10
+    Start-Sleep $sleepTimeBeforeKill;
+    $gpgProc = $null;
+    # $msProc seem empty trying something without it ...
+    Write-Host "Start hunting gpg-agent process on $(Get-Date -UFormat "%Y/%m/%d-%H:%M:%S")"
+    while ($gpgProc -eq $null) {
+        $gpgProc = Get-Process gpg-agent -ErrorAction SilentlyContinue;
+        if ($gpgProc) {
+            Write-Host;
+            Write-Host "Found a gpgProcess.";
+            break;
+        } else {
+            Write-Host -NoNewline "Not yet spawned ? $(Get-Date -UFormat "%Y/%m/%d-%H:%M:%S")`r";
+            Start-Sleep 1;
+        }
+    }
+    Write-Host;
+    Write-Host -NoNewline "Killing gpgProcess id ";
+    Write-Host -NoNewline $gpgProc.id;
+    Write-Host -NoNewline " in $($sleepTimeBeforeKill / 2.0) seconds ...";
+    Start-Sleep ($sleepTimeBeforeKill / 2.0);
     Stop-Process -id $gpgProc.id -Force
     Write-Host " Done."
 
