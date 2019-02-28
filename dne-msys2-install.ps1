@@ -164,6 +164,7 @@ function update-install {
     $gpgProc = $null;
     # $msProc seem empty trying something without it ...
     Write-Host "Start hunting gpg-agent process on $(Get-Date -UFormat "%Y/%m/%d-%H:%M:%S")"
+    Write-Host "If script is stuck for too long, open https://confluence.dont-nod.com/display/DEV/Game+Packaging+Guide#GamePackagingGuide-NimpMSYS2Install to get help."
     while ($gpgProc -eq $null) {
         $gpgProc = Get-Process gpg-agent -ErrorAction SilentlyContinue;
         if ($gpgProc) {
