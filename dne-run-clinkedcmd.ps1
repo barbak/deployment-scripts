@@ -52,8 +52,8 @@ $env:NIMP_LOG_FILE = [System.IO.Path]::Combine("$logDirectory", "patoune-nimp.lo
 Push-Location $workingDirectory
 $arg = "/K $deployArea\clink_0.4.9\clink_x64.exe inject & $deployArea\miniconda3\Scripts\activate.bat"
 if ($execPowerShell -eq $true) {
-    Write-Host "Will have a PowerShell."
-    $arg += " & $env:windir\System32\WindowsPowerShell\v1.0\powershell.exe"
+    Write-Host "Will have a PowerShell. (PSREADKUBE)"
+    $arg += " & $env:windir\System32\WindowsPowerShell\v1.0\powershell.exe -NoExit -Command ""Set-PSReadLineOption -EditMode Emacs"""
 } else {
     Write-Host "Will have a CMD."
 }
