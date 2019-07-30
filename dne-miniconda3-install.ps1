@@ -24,6 +24,11 @@
 .PARAMETER installNimp
     Does Nimp will be installed in base environment and addtional conda envs.
 
+.PARAMETER $useCanaryChannel
+	Does the update use the canary-channel instead of the stable channel on `conda update conda`.
+	(Can fix some stalling installation sometimes / https://github.com/conda/conda/issues/8937)
+
+
 .NOTES
     Originally, the script was intended to be used by Patoune.
 #>
@@ -41,11 +46,37 @@ param(
     [Alias("ps2")]
     [bool]$installPySide2=$false,
     [Alias("nimp")]
-    [bool]$installNimp=$true
+    [bool]$installNimp=$true,
+	[Alias("ucc")]
+	[bool]$useCanaryChannel=$False
 )
 
+# Utility function(s)
+function Force-Resolve-Path {
+    <#
+    .SYNOPSIS
+        Calls Resolve-Path but works for files that don't exist.
+    .REMARKS
+        From http://devhawk.net/blog/2010/1/22/fixing-powershells-busted-resolve-path-cmdlet
+		Copied from https://stackoverflow.com/questions/3038337/powershell-resolve-path-that-might-not-exist
+    #>
+    param (
+        [string] $FileName
+    )
+
+    $FileName = Resolve-Path $FileName -ErrorAction SilentlyContinue `
+                                       -ErrorVariable _frperror
+    if (-not($FileName)) {
+        $FileName = $_frperror[0].TargetObject
+    }
+
+    return $FileName
+}
+
+# Sanitize Paths (Some functions does not work properly with relative paths ... BISTADMIN / Start-Process)
+$deployArea = $(Force-Resolve-Path $deployArea)
+$installerName = $(Force-Resolve-Path $installerName)
 $condaDir = "$deployArea\miniconda3"
-# $ProgressPreference='SilentlyContinue'
 
 function Install-Miniconda3 {
     if (Test-Path $deployArea\dne_install_miniconda3.lock) {
@@ -55,26 +86,27 @@ function Install-Miniconda3 {
             Exit
         }
     }
+	$channelLabel = if ($useCanaryChannel) {"(conda-canary)"} else {"(stable)"}
     New-Item -itemType File -Force $deployArea\dne_install_miniconda3.lock >> $null
     # step 1
-    Write-Progress -Id 1 -Activity "Install MiniConda 3" -Status "Check requirements" -PercentComplete (100.0/6.0 * 1)
+    Write-Progress -Id 1 -Activity "Install MiniConda 3 $channelLabel" -Status "Check requirements" -PercentComplete (100.0/6.0 * 1)
     check-requirements
     # step 2
-    Write-Progress -Id 1 -Activity "Install MiniConda 3" -Status "Update conda base env"  -PercentComplete (100.0/6.0 * 2)
+    Write-Progress -Id 1 -Activity "Install MiniConda 3 $channelLabel" -Status "Update conda base env"  -PercentComplete (100.0/6.0 * 2)
     update-conda-base
     # step 3
-    Write-Progress -Id 1 -Activity "Install MiniConda 3" -Status "Install packages in conda base env"  -PercentComplete (100.0/6.0 * 3)
+    Write-Progress -Id 1 -Activity "Install MiniConda 3 $channelLabel" -Status "Install packages in conda base env"  -PercentComplete (100.0/6.0 * 3)
     install-packages-base
     # step 4
-    Write-Progress -Id 1 -Activity "Install MiniConda 3" -Status "Upgrade pip in conda base env"  -PercentComplete (100.0/6.0 * 4)
+    Write-Progress -Id 1 -Activity "Install MiniConda 3 $channelLabel" -Status "Upgrade pip in conda base env"  -PercentComplete (100.0/6.0 * 4)
     upgrade-pip-base
     if ($installPySide2) {
-        Write-Progress -Id 1 -Activity "Install MiniConda 3" -Status "Install PySide2 conda base env"  -PercentComplete (100.0/6.0 * 5)
+        Write-Progress -Id 1 -Activity "Install MiniConda 3 $channelLabel" -Status "Install PySide2 conda base env"  -PercentComplete (100.0/6.0 * 5)
         # step 5
         install-pyside2
     }
     # step 6
-    Write-Progress -Id 1 -Activity "Install MiniConda 3" -Status "Install Nimp conda base env"  -PercentComplete (100.0/6.0 * 6)
+    Write-Progress -Id 1 -Activity "Install MiniConda 3 $channelLabel" -Status "Install Nimp conda base env"  -PercentComplete (100.0/6.0 * 6)
     if ($installNimp) {
         install-nimp-base
     }
@@ -105,7 +137,7 @@ function check-requirements {
         # see https://powershell.org/forums/topic/bits-transfer-with-github/ for details.
         BITSADMIN /TRANSFER "Downloading Clink ..." /DYNAMIC /DOWNLOAD /priority FOREGROUND `
             https://github.com/mridgers/clink/releases/download/0.4.9/clink_0.4.9.zip `
-            $deployArea\clink_0.4.9.zip
+            "$deployArea\clink_0.4.9.zip"
     } else {
         Write-Warning "Clink archive already downloaded in '$deployArea\clink_0.4.9.zip'."
     }
@@ -133,12 +165,13 @@ function check-requirements {
 }
 
 function update-conda-base {
-
-    Write-Host -NoNewline "Updating conda in base env ... "
+	$customChannelUpdate = if ($useCanaryChannel) {"-c conda-canary"} else {""}
+	$channelLabel = if ($useCanaryChannel) {"(conda-canary channel)"} else {"(stable channel)"}
+    Write-Host -NoNewline "Updating conda in base env $channelLabel... "
     Start-Process -Wait -FilePath CMD `
         -ArgumentList "/C",
         "$condaDir\Scripts\activate.bat & ",
-        "conda update conda -y"
+        "conda update conda -y $customChannelUpdate"
     Write-Host "Done."
 }
 
