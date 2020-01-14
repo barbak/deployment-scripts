@@ -138,7 +138,7 @@ function setup-install {
     Write-Host -NoNewline "Customize mintty cursor ..."
     # Making custom cursor to have a visual marker (blocky cool cyan cursor)
     Start-Process -Wait -FilePath $shCmd `
-        -ArgumentList 'dash -c "echo \"CursorColour=0,128,255\nCursorType=block\" > ~/.minttyrc"'
+        -ArgumentList 'dash -c "echo \"CursorColour=0,128,255\nCursorType=block\nTerm=xterm-256color\" > ~/.minttyrc"'
     Write-Host " Done."
 }
 
