@@ -19,6 +19,7 @@
 
 .NOTES
     Originally, the script was intended to be used by Patoune.
+    Last SUCCESSFUL TEST DATE: 2020 07 28
 #>
 
 param(
@@ -31,23 +32,9 @@ param(
     [bool]$installNimp=$true
 )
 
-# $msysXzArchive="$deployArea\msys2-base-x86_64-20161025.tar.xz"
-# $msysTarName="$deployArea\msys2-base-x86_64-20161025.tar"
-$msysXzArchive="$deployArea\msys2-base-x86_64-20180531.tar.xz"
-$msysTarName="$deployArea\msys2-base-x86_64-20180531.tar"
+$msysXzArchive="$deployArea\msys2-base-x86_64-20200720.tar.xz"
+$msysTarName="$deployArea\msys2-base-x86_64-20200720.tar"
 $shCmd="$deployArea\msys64\msys2.exe"
-
-# Expand-Archive -Path $msysZipArchive -DestinationPath $deployArea
-# Save-Module -Name 7Zip4Powershell -Path .
-# $pathToModule = ".\7Zip4Powershell\1.8.0\7Zip4PowerShell.psd1"
-
-# if (-not (Get-Command Expand-7Zip -ErrorAction Ignore)) {
-#     Import-Module $pathToModule
-# }
-
-# Expand-7Zip $msysXzArchive . #$deployArea
-# Expand-7Zip $msysTarName .
-## 7Zip4Powershell est super lent a la decompression :/
 
 function Install-MSYS2 {
     if (Test-Path $deployArea\dne_install_msys2.lock) {
@@ -87,11 +74,9 @@ function Install-MSYS2 {
 
 function materialize-dependencies {
     if (-not(Test-Path $msysXzArchive)) {
-        # Write-Host -NoNewline "Downloading archive 'http://repo.msys2.org/distrib/x86_64/msys2-base-x86_64-20161025.tar.xz' in '$msysXzArchive'."
-        # http://repo.msys2.org/distrib/x86_64/msys2-base-x86_64-20180531.tar.xz
-        Write-Host -NoNewline "Downloading archive 'http://repo.msys2.org/distrib/x86_64/msys2-base-x86_64-20180531.tar.xz' in '$msysXzArchive'."
+        Write-Host -NoNewline "Downloading archive 'http://repo.msys2.org/distrib/x86_64/msys2-base-x86_64-20200720.tar.xz' in '$msysXzArchive'."
         Start-BitsTransfer `
-            -Source http://repo.msys2.org/distrib/x86_64/msys2-base-x86_64-20180531.tar.xz `
+            -Source http://repo.msys2.org/distrib/x86_64/msys2-base-x86_64-20200720.tar.xz `
             -Destination $msysXzArchive
 
         Write-Host " Done."
@@ -126,7 +111,7 @@ function extract-archive {
 function setup-install {
     # Need a first launch to make default files in order.
     Write-Host -NoNewline "Running msys2.exe for the first time ..."
-    Start-Process -Wait -FilePath $shCmd -ArgumentList "exit"
+    Start-Process -Wait -FilePath $shCmd -ArgumentList 'dash -c "taskkill //F //IM gpg-agent.exe //IM dirmngr.exe; exit"'
     Write-Host " Done."
 
     # Patching path ...
@@ -150,45 +135,9 @@ function update-install {
     Start-Process -Wait -FilePath $shCmd `
         -ArgumentList "dash -c '(echo $sleepTimeBeforeKill seconds before exiting && sleep $sleepTimeBeforeKill && kill `$`$)& yes | pacman -Suy'"
     Write-Host " Done."
-
-    # Now we can use it as expected
-    # (Almost :/ -- Pseudo-Fix: 2018/06/25)
-    # Still necessary at 2018/10/22
-    # We are stuck because a gpg-agent process is spawned and is never returning.
-    Write-Host "/!\ Kludgier ..."
-    Write-Host "Updating base install ..."
-    $msProc = Start-Process -FilePath $shCmd `
-        -ArgumentList "pacman -Syu --noconfirm"
-    Write-Host "Tryin to get gpg-agent to be spawned in $sleepTimeBeforeKill seconds ..."
-    Start-Sleep $sleepTimeBeforeKill;
-    $gpgProc = $null;
-    # $msProc seem empty trying something without it ...
-    Write-Host "Start hunting gpg-agent process on $(Get-Date -UFormat "%Y/%m/%d-%H:%M:%S")"
-    Write-Host "If script is stuck for too long, check https://confluence.dont-nod.com/display/TD/Patoune."
-    while ($gpgProc -eq $null) {
-        $gpgProc = Get-Process gpg-agent -ErrorAction SilentlyContinue;
-        if ($gpgProc) {
-            Write-Host;
-            Write-Host "Found a gpgProcess.";
-            break;
-        } else {
-            Write-Host -NoNewline "Not yet spawned ? $(Get-Date -UFormat "%Y/%m/%d-%H:%M:%S")`r";
-            Start-Sleep 1;
-        }
-    }
-    Write-Host;
-    Write-Host -NoNewline "Killing gpgProcess id ";
-    Write-Host -NoNewline $gpgProc.id;
-    Write-Host -NoNewline " in $($sleepTimeBeforeKill / 2.0) seconds ...";
-    Start-Sleep ($sleepTimeBeforeKill / 2.0);
-    Stop-Process -id $gpgProc.id -Force
+    Write-Host -NoNewline "Updating base install ..."
+    Start-Process -Wait -FilePath $shCmd -ArgumentList 'dash -c "pacman -Suy --noconfirm"'
     Write-Host " Done."
-
-    # The previous should be only the following lines
-    # Write-Host "Updating base install ..."
-    # Start-Process -Wait -FilePath $shCmd `
-    #     -ArgumentList "pacman -Syu --noconfirm"
-    # Write-Host " Done."
 }
 
 function install-packages {
@@ -218,3 +167,4 @@ function clean-deps {
 }
 
 Install-MSYS2
+Read-Host -Prompt "Press any key to continue . . . "
