@@ -201,9 +201,7 @@ function install-pyside2 {
     Start-Process -Wait -FilePath CMD `
         -ArgumentList "/C",
         "$condaDir\Scripts\activate.bat & ",
-        "conda install -y",
-            "-c conda-forge",
-            "PySide2"
+        "python -m pip install PySide2"
     Write-Host "Done."
 }
 
