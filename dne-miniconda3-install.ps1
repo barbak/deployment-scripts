@@ -212,7 +212,7 @@ function install-nimp-base {
         -ArgumentList "/C",
         "$condaDir\Scripts\activate.bat & ",
         "pip install --upgrade",
-            "git+https://github.com/dontnod/nimp.git",
+            "git+https://github.com/dontnod/nimp.git@dev",
             "git+https://github.com/dontnod/bittornado.git",
             "requests"
     Write-Host "Done."
@@ -276,3 +276,4 @@ function install-nimp-base {
 
 # Entry Point
 Install-Miniconda3
+Read-Host -Prompt ": Press enter to close "

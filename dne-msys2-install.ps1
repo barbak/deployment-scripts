@@ -27,7 +27,7 @@ param(
     [Alias("da")]
     [string]$deployArea,
     [Alias("timeout")]
-    [int]$sleepTimeBeforeKill=60,
+    [int]$sleepTimeBeforeKill=120,
     [Alias("nimp")]
     [bool]$installNimp=$true
 )
@@ -152,7 +152,7 @@ function install-nimp {
     Start-Process -Wait -FilePath $shCmd `
         -ArgumentList "/mingw64/bin/python3 -m pip  install --upgrade",
         "pip",
-        "git+https://github.com/dontnod/nimp.git",
+        "git+https://github.com/dontnod/nimp.git@dev",
         "git+https://github.com/dontnod/bittornado.git",
         "requests"
     Write-Host " Done."
@@ -167,4 +167,4 @@ function clean-deps {
 }
 
 Install-MSYS2
-Read-Host -Prompt "Press any key to continue . . . "
+Read-Host -Prompt ": Press enter to close "
