@@ -28,7 +28,6 @@
 
 .PARAMETER execPowerShell
     To have a PowerShell spawn with the miniconda environment.
-    (reason: no activate.ps1 available in miniconda to launch directly the PowerShell with the conda env)
 #>
 
 param(
@@ -53,7 +52,10 @@ Push-Location $workingDirectory
 $arg = "/K $deployArea\clink_0.4.9\clink_x64.exe inject & $deployArea\miniconda3\Scripts\activate.bat"
 if ($execPowerShell -eq $true) {
     Write-Host "Will have a PowerShell."
-    $arg += " & $env:windir\System32\WindowsPowerShell\v1.0\powershell.exe -NoExit -Command ""Set-PSReadLineOption -EditMode Emacs"""
+    $arg += " & $env:windir\System32\WindowsPowerShell\v1.0\powershell.exe -NoExit -Command "" "
+    $arg += "Set-PSReadLineOption -EditMode Emacs ;"
+    $arg += " & '$deployArea\miniconda3\shell\condabin\conda-hook.ps1' ; conda activate '$deployArea\miniconda3'"
+    $arg += " """
 } else {
     Write-Host "Will have a CMD."
 }
