@@ -9,25 +9,20 @@
 .PARAMETER deployArea
     Specify where the target directory to install MSYS2 is.
 
-.PARAMETER sleepTimeBeforeKill
-    Set the timeout for the update base install with potentially downgraded
-    elements. (Should not be this way but MSYS2 doesn't exit properly during
-    this stage)
-
 .PARAMETER installNimp
     Does Nimp will be installed.
 
 .NOTES
+    This script will close all of your mintty processes and gpg-agent before
+    starting. It is not intended to be used within mintty process.
     Originally, the script was intended to be used by Patoune.
-    Last SUCCESSFUL TEST DATE: 2020 07 28
+    Last SUCCESSFUL TEST DATE: 2020 12 09
 #>
 
 param(
     [Parameter(Mandatory=$true)]
     [Alias("da")]
     [string]$deployArea,
-    [Alias("timeout")]
-    [int]$sleepTimeBeforeKill=120,
     [Alias("nimp")]
     [bool]$installNimp=$true
 )
@@ -108,7 +103,21 @@ function extract-archive {
     Write-Host " Done."
 }
 
+function stop-all-mintty-and-gpg-agent {
+    Write-Host -NoNewline `
+        "Stopping all current mintty and gpg-agent processes ..."
+    if (Get-Process -Name mintty -ErrorAction SilentlyContinue) {
+        Stop-Process (Get-Process -Name mintty)
+    }
+    if (Get-Process -Name gpg-agent -ErrorAction SilentlyContinue) {
+        Stop-Process (Get-Process -Name gpg-agent)
+    }
+    Write-Host " Done."
+}
+
 function setup-install {
+    # Closing all processes before beginning the installation
+    stop-all-mintty-and-gpg-agent
     # Need a first launch to make default files in order.
     Write-Host -NoNewline "Running msys2.exe for the first time ..."
     Start-Process -Wait -FilePath $shCmd -ArgumentList 'dash -c "taskkill //F //IM gpg-agent.exe //IM dirmngr.exe; exit"'
@@ -124,20 +133,35 @@ function setup-install {
     # Making custom cursor to have a visual marker (blocky cool cyan cursor)
     Start-Process -Wait -FilePath $shCmd `
         -ArgumentList 'dash -c "echo \"CursorColour=0,128,255\nCursorType=block\nTerm=xterm-256color\" > ~/.minttyrc"'
+
     Write-Host " Done."
 }
 
+function wait-mintty-and-clean-gpg-agent {
+    Start-Sleep 1
+    $p = (get-process -Name mintty)
+    Write-Host -NoNewline "  Waiting mintty Process Id" $p.Id "..."
+    while (Get-Process -Id $p.Id -ErrorAction SilentlyContinue) {
+        Start-Sleep 1
+    }
+    Write-Host " Done."
+    if (Get-Process -Name gpg-agent -ErrorAction SilentlyContinue) {
+        Write-Host -NoNewline "  Residual gpg-agent process found ! Stopping it ..."
+        Stop-Process (Get-Process -Name gpg-agent)
+        Write-Host " Done."
+    }
+}
+
 function update-install {
-    Write-Host "/!\ Kludgy part ..."
-    Write-Host -NoNewline "Updating base install with potentially downgraded elements ..."
+    Write-Host "Updating base install with potentially downgraded elements ..."
     # To update the system with some conflicts we have to do this ...
-    Write-Host " If the msys2 windows is stucked, it will be automatically closed in $sleepTimeBeforeKill seconds."
-    Start-Process -Wait -FilePath $shCmd `
-        -ArgumentList "dash -c '(echo $sleepTimeBeforeKill seconds before exiting && sleep $sleepTimeBeforeKill && kill `$`$)& yes | pacman -Suy'"
-    Write-Host " Done."
-    Write-Host -NoNewline "Updating base install ..."
-    Start-Process -Wait -FilePath $shCmd -ArgumentList 'dash -c "pacman -Suy --noconfirm"'
-    Write-Host " Done."
+    Start-Process -FilePath $shCmd -ArgumentList "dash -c 'yes | pacman -Suy'"
+    wait-mintty-and-clean-gpg-agent
+    Write-Host "Done."
+    Write-Host "Updating base install ..."
+    Start-Process -FilePath $shCmd -ArgumentList 'pacman -Suy --noconfirm'
+    wait-mintty-and-clean-gpg-agent
+    Write-Host "Done."
 }
 
 function install-packages {
