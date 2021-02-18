@@ -9,9 +9,6 @@
 .PARAMETER deployArea
     Specify where the target directory to install MSYS2 is.
 
-.PARAMETER installNimp
-    Does Nimp will be installed.
-
 .NOTES
     This script will close all of your mintty processes and gpg-agent before
     starting. It is not intended to be used within mintty process.
@@ -22,9 +19,7 @@
 param(
     [Parameter(Mandatory=$true)]
     [Alias("da")]
-    [string]$deployArea,
-    [Alias("nimp")]
-    [bool]$installNimp=$true
+    [string]$deployArea
 )
 
 $msysXzArchive="$deployArea\msys2-base-x86_64-20200720.tar.xz"
@@ -55,11 +50,6 @@ function Install-MSYS2 {
     # step 5
     Write-Progress -Id 1 -Activity "Install MSYS2" -Status "Install packages" -PercentComplete (100.0/7.0 * 5)
     install-packages
-    # step 6
-    if ($installNimp) {
-        Write-Progress -Id 1 -Activity "Install MSYS2" -Status "Install Nimp" -PercentComplete (100.0/7.0 * 6)
-        install-nimp
-    }
     # step 7
     Write-Progress -Id 1 -Activity "Install MSYS2" -Status "Cleaning" -PercentComplete (100.0/7.0 * 7)
     clean-deps
@@ -123,10 +113,10 @@ function setup-install {
     Start-Process -Wait -FilePath $shCmd -ArgumentList 'dash -c "taskkill //F //IM gpg-agent.exe //IM dirmngr.exe; exit"'
     Write-Host " Done."
 
-    # Patching path ...
-    Write-Host -NoNewline "Patching bash path to have mingw%2d/bin and C:\\Program Files\\Perforce in path ..."
+    # Patching path ... (Fixme: Find something better than this ugly command line)
+    Write-Host -NoNewline "Patching bash path to have C:\\Python38 and C:\\Program Files\\Perforce in path ..."
     Start-Process -Wait -FilePath $shCmd `
-        -ArgumentList 'dash -c "grep -q ''^PATH.*mingw64'' ~/.bash_profile || echo ''PATH=/mingw64/bin:/mingw32/bin:$PATH:/c/Program\ Files/Perforce:/c/Program\ Files/Perforce/DVCS; export PATH'' >> ~/.bash_profile"'
+        -ArgumentList 'dash -c "grep -q ''^PATH.*Python38'' ~/.bash_profile || echo ''PATH=/c/Python38:/c/Python38/Scripts:$PATH:/c/Program\ Files/Perforce:/c/Program\ Files/Perforce/DVCS; export PATH'' >> ~/.bash_profile"'
     Write-Host " Done."
 
     Write-Host -NoNewline "Customize mintty cursor ..."
@@ -167,18 +157,7 @@ function update-install {
 function install-packages {
     Write-Host -NoNewline "Installing pacman packages ..."
     Start-Process -Wait -FilePath $shCmd `
-        -ArgumentList "pacman -S mingw-w64-x86_64-python3-pip git --noconfirm"
-    Write-Host " Done."
-}
-
-function install-nimp {
-    Write-Host -NoNewline "Pip step ..."
-    Start-Process -Wait -FilePath $shCmd `
-        -ArgumentList "/mingw64/bin/python3 -m pip  install --upgrade",
-        "pip",
-        "git+https://github.com/dontnod/nimp.git@dev",
-        "git+https://github.com/dontnod/bittornado.git",
-        "requests"
+        -ArgumentList "pacman -S git --noconfirm"
     Write-Host " Done."
 }
 
