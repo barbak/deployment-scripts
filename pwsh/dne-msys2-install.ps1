@@ -116,7 +116,7 @@ function setup-install {
     # Patching path ... (Fixme: Find something better than this ugly command line)
     Write-Host -NoNewline "Patching bash path to have C:\\Python38 and C:\\Program Files\\Perforce in path ..."
     Start-Process -Wait -FilePath $shCmd `
-        -ArgumentList 'dash -c "grep -q ''^PATH.*Python38'' ~/.bash_profile || echo ''PATH=/c/Python38:/c/Python38/Scripts:$PATH:/c/Program\ Files/Perforce:/c/Program\ Files/Perforce/DVCS; export PATH'' >> ~/.bash_profile"'
+        -ArgumentList 'dash -c "grep -q ''echo ''PATH=/mingw64/bin:/c/Python38:/c/Python38/Scripts:$PATH:/c/Program\ Files/Perforce:/c/Program\ Files/Perforce/DVCS; export PATH'' >> ~/.bash_profile"'
     Write-Host " Done."
 
     Write-Host -NoNewline "Customize mintty cursor ..."
@@ -157,7 +157,7 @@ function update-install {
 function install-packages {
     Write-Host -NoNewline "Installing pacman packages ..."
     Start-Process -Wait -FilePath $shCmd `
-        -ArgumentList "pacman -S git --noconfirm"
+        -ArgumentList "pacman -S git mingw-w64-x86_64-tk --noconfirm"
     Write-Host " Done."
 }
 
