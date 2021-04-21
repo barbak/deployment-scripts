@@ -116,7 +116,7 @@ function setup-install {
     # Patching path ... (Fixme: Find something better than this ugly command line)
     Write-Host -NoNewline "Patching bash path to have C:\\Python38 and C:\\Program Files\\Perforce in path ..."
     Start-Process -Wait -FilePath $shCmd `
-        -ArgumentList 'dash -c "echo ''PATH=/mingw64/bin:/c/Python38:/c/Python38/Scripts:$PATH:/c/Program\ Files/Perforce:/c/Program\ Files/Perforce/DVCS; export PATH'' >> ~/.bash_profile"'
+        -ArgumentList 'dash -c "echo ''PATH=/mingw64/bin:/c/Python38:/c/Python38/Scripts:$PATH:/c/Program\ Files/Perforce:/c/Program\ Files/Perforce/DVCS:/c/Program\ Files/Git/bin; export PATH'' >> ~/.bash_profile"'
     Write-Host " Done."
 
     Write-Host -NoNewline "Customize mintty cursor ..."
