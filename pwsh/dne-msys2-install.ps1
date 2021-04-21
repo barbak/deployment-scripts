@@ -47,9 +47,9 @@ function Install-MSYS2 {
     # step 4
     Write-Progress -Id 1 -Activity "Install MSYS2" -Status "Update install" -PercentComplete (100.0/7.0 * 4)
     update-install
-    # step 5
-    Write-Progress -Id 1 -Activity "Install MSYS2" -Status "Install packages" -PercentComplete (100.0/7.0 * 5)
-    install-packages
+    # step 5 # No more additional packages, only an updated vanilla install.
+    # Write-Progress -Id 1 -Activity "Install MSYS2" -Status "Install packages" -PercentComplete (100.0/7.0 * 5)
+    # install-packages
     # step 7
     Write-Progress -Id 1 -Activity "Install MSYS2" -Status "Cleaning" -PercentComplete (100.0/7.0 * 7)
     clean-deps
