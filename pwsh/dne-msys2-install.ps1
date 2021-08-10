@@ -13,7 +13,7 @@
     This script will close all of your mintty processes and gpg-agent before
     starting. It is not intended to be used within mintty process.
     Originally, the script was intended to be used by Patoune.
-    Last SUCCESSFUL TEST DATE: 2020 12 09
+    Last SUCCESSFUL TEST DATE: 2021 08 10
 #>
 
 param(
@@ -22,8 +22,8 @@ param(
     [string]$deployArea
 )
 
-$msysXzArchive="$deployArea\msys2-base-x86_64-20200720.tar.xz"
-$msysTarName="$deployArea\msys2-base-x86_64-20200720.tar"
+$msysXzArchive="$deployArea\msys2-base-x86_64-20210725.tar.xz"
+$msysTarName="$deployArea\msys2-base-x86_64-20210725.tar"
 $shCmd="$deployArea\msys64\msys2.exe"
 
 function Install-MSYS2 {
@@ -59,9 +59,9 @@ function Install-MSYS2 {
 
 function materialize-dependencies {
     if (-not(Test-Path $msysXzArchive)) {
-        Write-Host -NoNewline "Downloading archive 'http://repo.msys2.org/distrib/x86_64/msys2-base-x86_64-20200720.tar.xz' in '$msysXzArchive'."
+        Write-Host -NoNewline "Downloading archive 'http://repo.msys2.org/distrib/x86_64/msys2-base-x86_64-20210725.tar.xz' in '$msysXzArchive'."
         Start-BitsTransfer `
-            -Source http://repo.msys2.org/distrib/x86_64/msys2-base-x86_64-20200720.tar.xz `
+            -Source http://repo.msys2.org/distrib/x86_64/msys2-base-x86_64-20210725.tar.xz `
             -Destination $msysXzArchive
 
         Write-Host " Done."
