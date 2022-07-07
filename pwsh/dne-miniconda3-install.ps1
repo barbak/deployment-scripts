@@ -25,9 +25,11 @@
     Does Nimp will be installed in base environment and addtional conda envs.
 
 .PARAMETER $useCanaryChannel
-	Does the update use the canary-channel instead of the stable channel on `conda update conda`.
-	(Can fix some stalling installation sometimes / https://github.com/conda/conda/issues/8937)
+    Does the update use the canary-channel instead of the stable channel on `conda update conda`.
+    (Can fix some stalling installation sometimes / https://github.com/conda/conda/issues/8937)
 
+.PARAMETER $pauseAtEnd
+    Tell if the script should invoke a pause command before exiting completely.
 
 .NOTES
     Originally, the script was intended to be used by Patoune.
@@ -47,8 +49,10 @@ param(
     [bool]$installPySide2=$false,
     [Alias("nimp")]
     [bool]$installNimp=$true,
-	[Alias("ucc")]
-	[bool]$useCanaryChannel=$False
+    [Alias("ucc")]
+    [bool]$useCanaryChannel=$False,
+    [Alias("pae")]
+    [bool]$pauseAtEnd=$true
 )
 
 # Utility function(s)
@@ -276,4 +280,6 @@ function install-nimp-base {
 
 # Entry Point
 Install-Miniconda3
-Read-Host -Prompt ": Press enter to close "
+if ($pauseAtEnd) {
+    Read-Host -Prompt ": Press enter to close "
+}
