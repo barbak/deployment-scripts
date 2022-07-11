@@ -52,7 +52,7 @@ param(
     [Alias("ucc")]
     [bool]$useCanaryChannel=$False,
     [Alias("pae")]
-    [bool]$pauseAtEnd=$true
+    [bool]$pauseAtEnd=$false
 )
 
 # Utility function(s)
