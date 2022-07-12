@@ -9,6 +9,9 @@
 .PARAMETER deployArea
     Specify where the target directory to install MSYS2 is.
 
+.PARAMETER $pauseAtEnd
+    Tell if the script should invoke a pause command before exiting completely.
+
 .NOTES
     This script will close all of your mintty processes and gpg-agent before
     starting. It is not intended to be used within mintty process.
@@ -19,11 +22,15 @@
 param(
     [Parameter(Mandatory=$true)]
     [Alias("da")]
-    [string]$deployArea
+    [string]$deployArea,
+    [Alias("pae")]
+    [bool]$pauseAtEnd=$false
 )
 
-$msysXzArchive="$deployArea\msys2-base-x86_64-20210725.tar.xz"
-$msysTarName="$deployArea\msys2-base-x86_64-20210725.tar"
+$msysArchiveBaseName="msys2-base-x86_64-20220603"
+$msysXzArchive="$deployArea\$msysArchiveBaseName.tar.xz"
+$msysTarName="$deployArea\$msysArchiveBaseName.tar"
+
 $shCmd="$deployArea\msys64\msys2.exe"
 
 function Install-MSYS2 {
@@ -59,7 +66,7 @@ function Install-MSYS2 {
 
 function materialize-dependencies {
     if (-not(Test-Path $msysXzArchive)) {
-        Write-Host -NoNewline "Downloading archive 'http://repo.msys2.org/distrib/x86_64/msys2-base-x86_64-20210725.tar.xz' in '$msysXzArchive'."
+        Write-Host -NoNewline "Downloading archive 'http://repo.msys2.org/distrib/x86_64/$msysArchiveBaseName.tar.xz' in '$msysXzArchive'."
         Start-BitsTransfer `
             -Source http://repo.msys2.org/distrib/x86_64/msys2-base-x86_64-20210725.tar.xz `
             -Destination $msysXzArchive
@@ -170,4 +177,6 @@ function clean-deps {
 }
 
 Install-MSYS2
-Read-Host -Prompt ": Press enter to close "
+if ($pauseAtEnd) {
+    Read-Host -Prompt ": Press enter to close "
+}
