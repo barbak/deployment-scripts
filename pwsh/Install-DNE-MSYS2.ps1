@@ -68,7 +68,7 @@ function materialize-dependencies {
     if (-not(Test-Path $msysXzArchive)) {
         Write-Host -NoNewline "Downloading archive 'http://repo.msys2.org/distrib/x86_64/$msysArchiveBaseName.tar.xz' in '$msysXzArchive'."
         Start-BitsTransfer `
-            -Source http://repo.msys2.org/distrib/x86_64/msys2-base-x86_64-20210725.tar.xz `
+            -Source "http://repo.msys2.org/distrib/x86_64/$msysArchiveBaseName.tar.xz" `
             -Destination $msysXzArchive
 
         Write-Host " Done."
