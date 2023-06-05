@@ -12,18 +12,6 @@
 .PARAMETER installerName
     Fullpath where the installer should be or where it will be be downloaded.
 
-.PARAMETER createDnePy27
-    (Deactivated) Does the installer should create another conda env with python2.7.
-
-.PARAMETER createDnePy36
-    (Deactivated) Does the installer should create another conda env with python 3.6.
-
-.PARAMETER installPyside2
-    Does Pyside have to be installed (conda base and potentially dnepy36 if created).
-
-.PARAMETER installNimp
-    Does Nimp will be installed in base environment and addtional conda envs.
-
 .PARAMETER $useCanaryChannel
     Does the update use the canary-channel instead of the stable channel on `conda update conda`.
     (Can fix some stalling installation sometimes / https://github.com/conda/conda/issues/8937)
@@ -38,21 +26,13 @@
 param(
     [Parameter(Mandatory=$true)]
     [Alias("da")]
-    [string]$deployArea,
+    [string] $deployArea,
     [Alias("in")]
-    [string]$installerName="$deployArea\mc3-install.exe",
-    [Alias("27")]
-    [bool]$createDnepy27=$false,
-    [Alias("36")]
-    [bool]$createDnepy36=$false,
-    [Alias("ps2")]
-    [bool]$installPySide2=$false,
-    [Alias("nimp")]
-    [bool]$installNimp=$true,
+    [string] $installerName = "$deployArea\mc3-install.exe",
     [Alias("ucc")]
-    [bool]$useCanaryChannel=$False,
+    [bool] $useCanaryChannel = $False,
     [Alias("pae")]
-    [bool]$pauseAtEnd=$false
+    [bool] $pauseAtEnd = $false
 )
 
 # Utility function(s)
@@ -62,7 +42,7 @@ function Force-Resolve-Path {
         Calls Resolve-Path but works for files that don't exist.
     .REMARKS
         From http://devhawk.net/blog/2010/1/22/fixing-powershells-busted-resolve-path-cmdlet
-		Copied from https://stackoverflow.com/questions/3038337/powershell-resolve-path-that-might-not-exist
+        Copied from https://stackoverflow.com/questions/3038337/powershell-resolve-path-that-might-not-exist
     #>
     param (
         [string] $FileName
@@ -83,6 +63,7 @@ $installerName = $(Force-Resolve-Path $installerName)
 $condaDir = "$deployArea\miniconda3"
 
 function Install-Miniconda3 {
+
     if (Test-Path $deployArea\dne_install_miniconda3.lock) {
         Write-Warning "Lock file already present. A previous installation has been started but have not finished successfully."
         $confirm = Read-Host -Prompt "Do you want to continue ? [Y/n] "
@@ -90,31 +71,22 @@ function Install-Miniconda3 {
             Exit
         }
     }
-	$channelLabel = if ($useCanaryChannel) {"(conda-canary)"} else {"(stable)"}
+    $channelLabel = if ($useCanaryChannel) {"(conda-canary)"} else {"(stable)"}
+
     New-Item -itemType File -Force $deployArea\dne_install_miniconda3.lock >> $null
+
     # step 1
-    Write-Progress -Id 1 -Activity "Install MiniConda 3 $channelLabel" -Status "Check requirements" -PercentComplete (100.0/6.0 * 1)
+    Write-Progress -Id 1 -Activity "Install MiniConda 3 $channelLabel" -Status "Check requirements" -PercentComplete (100.0/3.0 * 1)
     check-requirements
     # step 2
-    Write-Progress -Id 1 -Activity "Install MiniConda 3 $channelLabel" -Status "Update conda base env"  -PercentComplete (100.0/6.0 * 2)
+    Write-Progress -Id 1 -Activity "Install MiniConda 3 $channelLabel" -Status "Update conda base env"  -PercentComplete (100.0/3.0 * 2)
     update-conda-base
     # step 3
-    Write-Progress -Id 1 -Activity "Install MiniConda 3 $channelLabel" -Status "Install packages in conda base env"  -PercentComplete (100.0/6.0 * 3)
+    Write-Progress -Id 1 -Activity "Install MiniConda 3 $channelLabel" -Status "Install packages in conda base env"  -PercentComplete (100.0/3.0 * 3)
     install-packages-base
-    # step 4
-    Write-Progress -Id 1 -Activity "Install MiniConda 3 $channelLabel" -Status "Upgrade pip in conda base env"  -PercentComplete (100.0/6.0 * 4)
-    upgrade-pip-base
-    if ($installPySide2) {
-        Write-Progress -Id 1 -Activity "Install MiniConda 3 $channelLabel" -Status "Install PySide2 conda base env"  -PercentComplete (100.0/6.0 * 5)
-        # step 5
-        install-pyside2
-    }
-    # step 6
-    Write-Progress -Id 1 -Activity "Install MiniConda 3 $channelLabel" -Status "Install Nimp conda base env"  -PercentComplete (100.0/6.0 * 6)
-    if ($installNimp) {
-        install-nimp-base
-    }
+
     Remove-Item -Force $deployArea\dne_install_miniconda3.lock
+
     Write-Progress -Id 1 -Activity "Install MiniConda 3" -Completed
 }
 
@@ -169,8 +141,8 @@ function check-requirements {
 }
 
 function update-conda-base {
-	$customChannelUpdate = if ($useCanaryChannel) {"-c conda-canary"} else {""}
-	$channelLabel = if ($useCanaryChannel) {"(conda-canary channel)"} else {"(stable channel)"}
+    $customChannelUpdate = if ($useCanaryChannel) {"-c conda-canary"} else {""}
+    $channelLabel = if ($useCanaryChannel) {"(conda-canary channel)"} else {"(stable channel)"}
     Write-Host -NoNewline "Updating conda in base env $channelLabel... "
     Start-Process -Wait -FilePath CMD `
         -ArgumentList "/C",
@@ -188,95 +160,6 @@ function install-packages-base {
         "conda install git pip ipython -y"
     Write-Host "Done."
 }
-
-function upgrade-pip-base {
-
-    Write-Host -NoNewline "Upgrading pip in base env ... "
-    Start-Process -Wait -FilePath CMD `
-        -ArgumentList "/C",
-        "$condaDir\Scripts\activate.bat & ",
-        "python -m pip install --upgrade pip"
-    Write-Host "Done."
-}
-
-function install-pyside2 {
-
-    Write-Host -NoNewline "Installing PySide 2 in base env ... "
-    Start-Process -Wait -FilePath CMD `
-        -ArgumentList "/C",
-        "$condaDir\Scripts\activate.bat & ",
-        "python -m pip install PySide2"
-    Write-Host "Done."
-}
-
-function install-nimp-base {
-
-    Write-Host -NoNewline "Installing nimp in the base interpreter ... "
-    Start-Process -Wait -FilePath CMD `
-        -ArgumentList "/C",
-        "$condaDir\Scripts\activate.bat & ",
-        "pip install --upgrade",
-            "git+https://github.com/dontnod/nimp.git@dev",
-            "git+https://github.com/dontnod/bittornado.git",
-            "requests"
-    Write-Host "Done."
-}
-
-# if ($createDnepy27) {
-#     Write-Host -NoNewline "Creating dnepy27 env ... "
-#     Start-Process -Wait -FilePath CMD `
-#         -ArgumentList "/C",
-#         "$condaDir\Scripts\activate.bat & ",
-#         "conda create -n dnepy27 -y",
-#             "-c conda-forge",
-#             "python=2.7",
-#             "ipython", "git"
-#     if ($installPySide2) {
-#         Start-Process -Wait -FilePath CMD `
-#             -ArgumentList "/C",
-#             "$condaDir\Scripts\activate.bat & ",
-#             "conda install -n dnepy27 -y",
-#                 "-c conda-forge",
-#                 "PySide2"
-#     }
-#     Write-Host "Done."
-# } else {
-#     Write-Host "Skipping dnepy27 creation."
-# }
-
-# if ($createDnepy36) {
-#     Write-Host -NoNewline "Creating dnepy36 env ... "
-#         Start-Process -Wait -FilePath CMD `
-#             -ArgumentList "/C",
-#             "$condaDir\Scripts\activate.bat & ",
-#             "conda create -n dnepy36 -y",
-#                 "-c conda-forge",
-#                 "python=3.6",
-#                 "ipython", "git"
-#     if ($installPySide2) {
-#         Start-Process -Wait -FilePath CMD `
-#             -ArgumentList "/C",
-#             "$condaDir\Scripts\activate.bat & ",
-#             "conda install -n dnepy36 -y",
-#                 "-c conda-forge",
-#                 "PySide2"
-#     }
-#     Write-Host "Done."
-
-#     if ($installNimp) {
-#         Write-Host -NoNewline "Updating nimp in dnepy36 env ... "
-#         Start-Process -Wait -FilePath CMD `
-#         -ArgumentList "/C",
-#         "$condaDir\Scripts\activate.bat dnepy36 &",
-#         "python -m pip install --upgrade",
-#         "git+https://github.com/dontnod/nimp.git", 
-#         "git+https://github.com/dontnod/bittornado.git",
-#         "requests"
-#         Write-Host "Done."
-#     }
-# } else {
-#     Write-Host "Skipping dnepy36 creation."
-# }
 
 # Entry Point
 Install-Miniconda3
