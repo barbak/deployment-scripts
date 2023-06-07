@@ -27,7 +27,7 @@ param(
     [bool]$pauseAtEnd=$false
 )
 
-$msysArchiveBaseName="msys2-base-x86_64-20220603"
+$msysArchiveBaseName="msys2-base-x86_64-20230526"
 $msysXzArchive="$deployArea\$msysArchiveBaseName.tar.xz"
 $msysTarName="$deployArea\$msysArchiveBaseName.tar"
 
@@ -43,22 +43,19 @@ function Install-MSYS2 {
     }
     New-Item -itemType File -Force $deployArea\dne_install_msys2.lock >> $null
     # step1
-    Write-Progress -Id 1 -Activity "Install MSYS2" -Status "Materialize dependencies" -PercentComplete (100.0/7.0 * 1)
+    Write-Progress -Id 1 -Activity "Install MSYS2" -Status "Materialize dependencies" -PercentComplete 20
     materialize-dependencies
     # step 2
-    Write-Progress -Id 1 -Activity "Install MSYS2" -Status "Extract archive" -PercentComplete (100.0/7.0 * 2)
+    Write-Progress -Id 1 -Activity "Install MSYS2" -Status "Extract archive" -PercentComplete 40
     extract-archive
     # step 3
-    Write-Progress -Id 1 -Activity "Install MSYS2" -Status "Setup install" -PercentComplete (100.0/7.0 * 3)
+    Write-Progress -Id 1 -Activity "Install MSYS2" -Status "Setup install" -PercentComplete 60
     setup-install
     # step 4
-    Write-Progress -Id 1 -Activity "Install MSYS2" -Status "Update install" -PercentComplete (100.0/7.0 * 4)
+    Write-Progress -Id 1 -Activity "Install MSYS2" -Status "Update install" -PercentComplete 80
     update-install
-    # step 5 # No more additional packages, only an updated vanilla install.
-    # Write-Progress -Id 1 -Activity "Install MSYS2" -Status "Install packages" -PercentComplete (100.0/7.0 * 5)
-    # install-packages
-    # step 7
-    Write-Progress -Id 1 -Activity "Install MSYS2" -Status "Cleaning" -PercentComplete (100.0/7.0 * 7)
+    # step 5
+    Write-Progress -Id 1 -Activity "Install MSYS2" -Status "Cleaning" -PercentComplete 100
     clean-deps
     Remove-Item -Force $deployArea\dne_install_msys2.lock
     Write-Progress -Id 1 -Activity "Install MSYS2" -Completed
@@ -123,7 +120,7 @@ function setup-install {
     # Patching path ... (Fixme: Find something better than this ugly command line)
     Write-Host -NoNewline "Patching bash path to have C:\\Python39 and C:\\Program Files\\Perforce in path ..."
     Start-Process -Wait -FilePath $shCmd `
-        -ArgumentList 'dash -c "echo ''PATH=/mingw64/bin:/c/Python39:/c/Python39/Scripts:$PATH:/c/Program\ Files/Perforce:/c/Program\ Files/Perforce/DVCS:/c/Program\ Files/Git/cmd; export PATH'' >> ~/.bash_profile"'
+        -ArgumentList 'dash -c "echo ''PATH=$PATH:/c/Python39:/c/Python39/Scripts:/c/Program\ Files/Perforce:/c/Program\ Files/Perforce/DVCS:/c/Program\ Files/Git/cmd; export PATH'' >> ~/.bash_profile"'
     Write-Host " Done."
 
     Write-Host -NoNewline "Customize mintty cursor ..."
@@ -159,13 +156,6 @@ function update-install {
     Start-Process -FilePath $shCmd -ArgumentList 'pacman -Suy --noconfirm'
     wait-mintty-and-clean-gpg-agent
     Write-Host "Done."
-}
-
-function install-packages {
-    Write-Host -NoNewline "Installing pacman packages ..."
-    Start-Process -Wait -FilePath $shCmd `
-        -ArgumentList "pacman -S git mingw-w64-x86_64-tk --noconfirm"
-    Write-Host " Done."
 }
 
 function clean-deps {

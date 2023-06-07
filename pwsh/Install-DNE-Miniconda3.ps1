@@ -76,13 +76,13 @@ function Install-Miniconda3 {
     New-Item -itemType File -Force $deployArea\dne_install_miniconda3.lock >> $null
 
     # step 1
-    Write-Progress -Id 1 -Activity "Install MiniConda 3 $channelLabel" -Status "Check requirements" -PercentComplete (100.0/3.0 * 1)
+    Write-Progress -Id 1 -Activity "Install MiniConda 3 $channelLabel" -Status "Check requirements" -PercentComplete 33
     check-requirements
     # step 2
-    Write-Progress -Id 1 -Activity "Install MiniConda 3 $channelLabel" -Status "Update conda base env"  -PercentComplete (100.0/3.0 * 2)
+    Write-Progress -Id 1 -Activity "Install MiniConda 3 $channelLabel" -Status "Update conda base env"  -PercentComplete 66
     update-conda-base
     # step 3
-    Write-Progress -Id 1 -Activity "Install MiniConda 3 $channelLabel" -Status "Install packages in conda base env"  -PercentComplete (100.0/3.0 * 3)
+    Write-Progress -Id 1 -Activity "Install MiniConda 3 $channelLabel" -Status "Install packages in conda base env"  -PercentComplete 100
     install-packages-base
 
     Remove-Item -Force $deployArea\dne_install_miniconda3.lock
