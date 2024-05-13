@@ -4,7 +4,9 @@
 
 .DESCRIPTION
     Install MSYS2 on your system in the deploy area by downloading the archive
-    and deploying (custom environment and config files) it in the deploy aera.
+    and deploying it in the deploy aera.
+    Deploying means that the msys2 base install has custom environment, custom config files
+    and is upgraded to the latest version its package manager can access.
 
 .PARAMETER deployArea
     Specify where the target directory to install MSYS2 is.
