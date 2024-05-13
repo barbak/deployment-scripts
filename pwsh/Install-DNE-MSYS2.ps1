@@ -4,7 +4,7 @@
 
 .DESCRIPTION
     Install MSYS2 on your system in the deploy area by downloading the archive
-    and deploying it in the deploy aera.
+    and deploying (custom environment and config files) it in the deploy aera.
 
 .PARAMETER deployArea
     Specify where the target directory to install MSYS2 is.
@@ -16,7 +16,7 @@
     This script will close all of your mintty processes and gpg-agent before
     starting. It is not intended to be used within mintty process.
     Originally, the script was intended to be used by Patoune.
-    Last SUCCESSFUL TEST DATE: 2021 08 10
+    Last SUCCESSFUL TEST DATE: 2024 05 13
 #>
 
 param(
@@ -27,7 +27,7 @@ param(
     [bool]$pauseAtEnd=$false
 )
 
-$msysArchiveBaseName="msys2-base-x86_64-20230526"
+$msysArchiveBaseName="msys2-base-x86_64-20240507"
 $msysXzArchive="$deployArea\$msysArchiveBaseName.tar.xz"
 $msysTarName="$deployArea\$msysArchiveBaseName.tar"
 
