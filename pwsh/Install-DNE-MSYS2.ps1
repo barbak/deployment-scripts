@@ -15,8 +15,6 @@
     Tell if the script should invoke a pause command before exiting completely.
 
 .NOTES
-    This script will close all of your mintty processes and gpg-agent before
-    starting. It is not intended to be used within mintty process.
     Originally, the script was intended to be used by Patoune.
     Last SUCCESSFUL TEST DATE: 2024 11 13
 #>
