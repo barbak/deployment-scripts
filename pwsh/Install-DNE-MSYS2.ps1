@@ -18,7 +18,7 @@
     This script will close all of your mintty processes and gpg-agent before
     starting. It is not intended to be used within mintty process.
     Originally, the script was intended to be used by Patoune.
-    Last SUCCESSFUL TEST DATE: 2024 05 13
+    Last SUCCESSFUL TEST DATE: 2024 11 13
 #>
 
 param(
@@ -29,7 +29,7 @@ param(
     [bool]$pauseAtEnd=$false
 )
 
-$msysArchiveBaseName="msys2-base-x86_64-20240507"
+$msysArchiveBaseName="msys2-base-x86_64-20240727"
 $msysXzArchive="$deployArea\$msysArchiveBaseName.tar.xz"
 $msysTarName="$deployArea\$msysArchiveBaseName.tar"
 
@@ -44,26 +44,28 @@ function Install-MSYS2 {
         }
     }
     New-Item -itemType File -Force $deployArea\dne_install_msys2.lock >> $null
-    # step1
-    Write-Progress -Id 1 -Activity "Install MSYS2" -Status "Materialize dependencies" -PercentComplete 20
-    materialize-dependencies
+    # step 1
+    Write-Host -ForegroundColor Green "INF - [STEP 1/5] Materialize Dependencies"
+    step-materialize-dependencies
     # step 2
-    Write-Progress -Id 1 -Activity "Install MSYS2" -Status "Extract archive" -PercentComplete 40
-    extract-archive
+    Write-Host -ForegroundColor Green "INF - [STEP 2/5] Extract Archive"
+    step-extract-archive
     # step 3
-    Write-Progress -Id 1 -Activity "Install MSYS2" -Status "Setup install" -PercentComplete 60
-    setup-install
+    Write-Host -ForegroundColor Green "INF - [STEP 3/5] Setup Install"
+    step-setup-install
     # step 4
-    Write-Progress -Id 1 -Activity "Install MSYS2" -Status "Update install" -PercentComplete 80
-    update-install
+    Write-Host -ForegroundColor Green "INF - [STEP 4/5] Update Install"
+    step-update-install
     # step 5
-    Write-Progress -Id 1 -Activity "Install MSYS2" -Status "Cleaning" -PercentComplete 100
-    clean-deps
+    Write-Host -ForegroundColor Green "INF - [STEP 5/5] Cleaning"
+    step-clean-deps
     Remove-Item -Force $deployArea\dne_install_msys2.lock
-    Write-Progress -Id 1 -Activity "Install MSYS2" -Completed
+    Write-Host -ForegroundColor Green "INF - Install MSYS2 Completed."
 }
 
-function materialize-dependencies {
+function step-materialize-dependencies {
+    $ProgressPreferenceBackup = $Global:ProgressPreference
+    $Global:ProgressPreference = 'SilentlyContinue'
     if (-not(Test-Path $msysXzArchive)) {
         Write-Host -NoNewline "Downloading archive 'http://repo.msys2.org/distrib/x86_64/$msysArchiveBaseName.tar.xz' in '$msysXzArchive'."
         Start-BitsTransfer `
@@ -75,96 +77,66 @@ function materialize-dependencies {
       Write-Host "Archive already downloaded in '$msysXzArchive'"
     }
 
-    if (-not(Test-Path $env:temp\PSModules\PS7Zip)) {
-        Write-Host -NoNewline "Dependency not found, downloading it ..."
-        if (-not(Test-Path $env:temp\PSModules)) {
-            New-Item -Path $env:temp\PSModules -ItemType "directory" > $null
-        }
-        Save-Module -Name PS7Zip -Path $env:temp\PSModules
-        Write-Host " Done."
-    }
-
     $pathToModule = "$env:temp\PSModules\PS7Zip\2.2.0\PS7Zip.psd1"
     if (-not (Get-Command Expand-7Zip -ErrorAction Ignore)) {
+        if (-not(Test-Path $env:temp\PSModules\PS7Zip)) {
+            Write-Host -NoNewline "Dependency not found, downloading it ..."
+            if (-not(Test-Path $env:temp\PSModules)) {
+                New-Item -Path $env:temp\PSModules -ItemType "directory" > $null
+            }
+            Save-Module -Name PS7Zip -Path $env:temp\PSModules
+            Write-Host " Done."
+        }
         Write-Host -NoNewline "Importing dependency ..."
-        Import-Module $pathToModule
+        Import-Module $pathToModule > $null
         Write-Host " Done."
+    } else {
+        Write-Host "Dependency already accessible at runtime, don't have to import it."
     }
+    $Global:ProgressPreference = $ProgressPreferenceBackup
 }
 
-function extract-archive {
+function step-extract-archive {
     Write-Host -NoNewline "Extracting archives '$msysXzArchive' to '$deployArea' ..."
-    Expand-7Zip -FullName $msysXzArchive -DestinationPath $deployArea
-    Expand-7Zip -FullName $msysTarName -DestinationPath $deployArea -Remove
+    Expand-7Zip -FullName $msysXzArchive -DestinationPath $deployArea > $null
+    Expand-7Zip -FullName $msysTarName -DestinationPath $deployArea -Remove > $null
     Write-Host " Done."
 }
 
-function stop-all-mintty-and-gpg-agent {
-    Write-Host -NoNewline `
-        "Stopping all current mintty and gpg-agent processes ..."
-    if (Get-Process -Name mintty -ErrorAction SilentlyContinue) {
-        Stop-Process (Get-Process -Name mintty)
-    }
-    if (Get-Process -Name gpg-agent -ErrorAction SilentlyContinue) {
-        Stop-Process (Get-Process -Name gpg-agent)
-    }
-    Write-Host " Done."
-}
-
-function setup-install {
-    # Closing all processes before beginning the installation
-    stop-all-mintty-and-gpg-agent
+function step-setup-install {
     # Need a first launch to make default files in order.
     Write-Host -NoNewline "Running msys2.exe for the first time ..."
-    Start-Process -Wait -FilePath $shCmd -ArgumentList 'dash -c "taskkill //F //IM gpg-agent.exe //IM dirmngr.exe; exit"'
+    Start-Process -Wait -UseNewEnvironment -FilePath $shCmd -ArgumentList 'dash -c exit'
     Write-Host " Done."
 
     # Patching path ... (Fixme: Find something better than this ugly command line)
     Write-Host -NoNewline "Patching bash path to have C:\\Python39 and C:\\Program Files\\Perforce in path ..."
-    Start-Process -Wait -FilePath $shCmd `
+    Start-Process -Wait -UseNewEnvironment -FilePath $shCmd `
         -ArgumentList 'dash -c "echo ''PATH=$PATH:/c/Python39:/c/Python39/Scripts:/c/Program\ Files/Perforce:/c/Program\ Files/Perforce/DVCS:/c/Program\ Files/Git/cmd; export PATH'' >> ~/.bash_profile"'
     Write-Host " Done."
 
     Write-Host -NoNewline "Customize mintty cursor ..."
     # Making custom cursor to have a visual marker (blocky cool cyan cursor)
-    Start-Process -Wait -FilePath $shCmd `
+    Start-Process -Wait -UseNewEnvironment -FilePath $shCmd `
         -ArgumentList 'dash -c "echo \"CursorColour=0,128,255\nCursorType=block\nTerm=xterm-256color\" > ~/.minttyrc"'
 
     Write-Host " Done."
 }
 
-function wait-mintty-and-clean-gpg-agent {
-    Start-Sleep 1
-    $p = (get-process -Name mintty)
-    Write-Host -NoNewline "  Waiting mintty Process Id" $p.Id "..."
-    while (Get-Process -Id $p.Id -ErrorAction SilentlyContinue) {
-        Start-Sleep 1
-    }
-    Write-Host " Done."
-    if (Get-Process -Name gpg-agent -ErrorAction SilentlyContinue) {
-        Write-Host -NoNewline "  Residual gpg-agent process found ! Stopping it ..."
-        Stop-Process (Get-Process -Name gpg-agent)
-        Write-Host " Done."
-    }
-}
-
-function update-install {
-    Write-Host "Updating base install with potentially downgraded elements ..."
+function step-update-install {
+    Write-Host -NoNewline "Updating base install with potentially downgraded elements ..."
     # To update the system with some conflicts we have to do this ...
-    Start-Process -FilePath $shCmd -ArgumentList "dash -c 'yes | pacman -Suy'"
-    wait-mintty-and-clean-gpg-agent
-    Write-Host "Done."
-    Write-Host "Updating base install ..."
-    Start-Process -FilePath $shCmd -ArgumentList 'pacman -Suy --noconfirm'
-    wait-mintty-and-clean-gpg-agent
+    Start-Process -Wait -UseNewEnvironment -FilePath $shCmd -ArgumentList "dash -c 'yes | pacman -Suy'"
+    Write-Host " Done."
+    Write-Host -NoNewline "Updating base install ..."
+    Start-Process -Wait -UseNewEnvironment -FilePath $shCmd -ArgumentList 'pacman -Suy --noconfirm'
     Write-Host "Done."
 }
 
-function clean-deps {
+function step-clean-deps {
     Write-Host -NoNewline "Cleaning PS module ..."
-    # Have to use get-item because powershell ...
     Remove-Item -Recurse -Force (Get-Item "$env:temp\PSModules\PS7Zip").FullName
-    # Remove-Item -Recurse -Force $deployArea\msys64
+    # Remove-Module PS7Zip
     Write-Host " Done."
 }
 
