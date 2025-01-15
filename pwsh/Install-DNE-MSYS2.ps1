@@ -43,25 +43,32 @@ function Install-MSYS2 {
     }
     New-Item -itemType File -Force $deployArea\dne_install_msys2.lock >> $null
     # step 1
-    Write-Host -ForegroundColor Green "INF - [STEP 1/5] Materialize Dependencies"
+    Write-Host -ForegroundColor Green "INF - [STEP 1/4] Materialize Dependencies"
     step-materialize-dependencies
     # step 2
-    Write-Host -ForegroundColor Green "INF - [STEP 2/5] Extract Archive"
+    Write-Host -ForegroundColor Green "INF - [STEP 2/4] Extract Archive"
     step-extract-archive
     # step 3
-    Write-Host -ForegroundColor Green "INF - [STEP 3/5] Setup Install"
+    Write-Host -ForegroundColor Green "INF - [STEP 3/4] Setup Install"
     step-setup-install
     # step 4
-    Write-Host -ForegroundColor Green "INF - [STEP 4/5] Update Install"
+    Write-Host -ForegroundColor Green "INF - [STEP 4/4] Update Install"
     step-update-install
-    # step 5
-    Write-Host -ForegroundColor Green "INF - [STEP 5/5] Cleaning"
-    step-clean-deps
     Remove-Item -Force $deployArea\dne_install_msys2.lock
     Write-Host -ForegroundColor Green "INF - Install MSYS2 Completed."
 }
 
 function step-materialize-dependencies {
+    # Don't automatize Microsoft.PowerShell.PSResourceGet installation since it should be here.
+    if (-not (Get-Module Microsoft.PowerShell.PSResourceGet)) {
+        Write-Error "Microsoft.PowerShell.PSResourceGet module not found."
+        Write-Warning "You can install missing resource with the following command:"
+        Write-Host -ForegroundColor DarkYellow "PS> Install-PSResource -Name Microsoft.PowerShell.PSResourceGet -Reinstall"
+        Write-Host "For more information see: https://www.powershellgallery.com/packages/Microsoft.PowerShell.PSResourceGet"
+        Exit
+    } else {
+        Write-Host "Microsoft.PowerShell.PSResourceGet is here."
+    }
     $ProgressPreferenceBackup = $Global:ProgressPreference
     $Global:ProgressPreference = 'SilentlyContinue'
     if (-not(Test-Path $msysXzArchive)) {
@@ -75,21 +82,11 @@ function step-materialize-dependencies {
       Write-Host "Archive already downloaded in '$msysXzArchive'"
     }
 
-    $pathToModule = "$env:temp\PSModules\PS7Zip\2.2.0\PS7Zip.psd1"
     if (-not (Get-Command Expand-7Zip -ErrorAction Ignore)) {
-        if (-not(Test-Path $env:temp\PSModules\PS7Zip)) {
-            Write-Host -NoNewline "Dependency not found, downloading it ..."
-            if (-not(Test-Path $env:temp\PSModules)) {
-                New-Item -Path $env:temp\PSModules -ItemType "directory" > $null
-            }
-            Save-Module -Name PS7Zip -Path $env:temp\PSModules
-            Write-Host " Done."
-        }
-        Write-Host -NoNewline "Importing dependency ..."
-        Import-Module $pathToModule > $null
-        Write-Host " Done."
+        Write-Warning "P7Zip not present, installing it."
+        Install-PSResource -Name PS7Zip
     } else {
-        Write-Host "Dependency already accessible at runtime, don't have to import it."
+        Write-Host "PS7Zip already accessible at runtime, nothing to do."
     }
     $Global:ProgressPreference = $ProgressPreferenceBackup
 }
@@ -129,13 +126,6 @@ function step-update-install {
     Write-Host -NoNewline "Updating base install ..."
     Start-Process -Wait -UseNewEnvironment -FilePath $shCmd -ArgumentList 'pacman -Suy --noconfirm'
     Write-Host "Done."
-}
-
-function step-clean-deps {
-    Write-Host -NoNewline "Cleaning PS module ..."
-    Remove-Item -Recurse -Force (Get-Item "$env:temp\PSModules\PS7Zip").FullName
-    # Remove-Module PS7Zip
-    Write-Host " Done."
 }
 
 Install-MSYS2
