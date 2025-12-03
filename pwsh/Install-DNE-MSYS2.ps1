@@ -27,9 +27,8 @@ param(
     [bool]$pauseAtEnd=$false
 )
 
-$msysArchiveBaseName="msys2-base-x86_64-20240727"
+$msysArchiveBaseName="msys2-base-x86_64-20250830"
 $msysXzArchive="$deployArea\$msysArchiveBaseName.tar.xz"
-$msysTarName="$deployArea\$msysArchiveBaseName.tar"
 
 $shCmd="$deployArea\msys64\msys2.exe"
 
@@ -59,16 +58,6 @@ function Install-MSYS2 {
 }
 
 function step-materialize-dependencies {
-    # Don't automatize Microsoft.PowerShell.PSResourceGet installation since it should be here.
-    if (-not (Get-Module Microsoft.PowerShell.PSResourceGet)) {
-        Write-Error "Microsoft.PowerShell.PSResourceGet module not found."
-        Write-Warning "You can install missing resource with the following command:"
-        Write-Host -ForegroundColor DarkYellow "PS> Install-PSResource -Name Microsoft.PowerShell.PSResourceGet -Reinstall"
-        Write-Host "For more information see: https://www.powershellgallery.com/packages/Microsoft.PowerShell.PSResourceGet"
-        Exit
-    } else {
-        Write-Host "Microsoft.PowerShell.PSResourceGet is here."
-    }
     $ProgressPreferenceBackup = $Global:ProgressPreference
     $Global:ProgressPreference = 'SilentlyContinue'
     if (-not(Test-Path $msysXzArchive)) {
@@ -81,20 +70,13 @@ function step-materialize-dependencies {
     } else {
       Write-Host "Archive already downloaded in '$msysXzArchive'"
     }
-
-    if (-not (Get-Command Expand-7Zip -ErrorAction Ignore)) {
-        Write-Warning "P7Zip not present, installing it."
-        Install-PSResource -Name PS7Zip
-    } else {
-        Write-Host "PS7Zip already accessible at runtime, nothing to do."
-    }
     $Global:ProgressPreference = $ProgressPreferenceBackup
 }
 
 function step-extract-archive {
     Write-Host -NoNewline "Extracting archives '$msysXzArchive' to '$deployArea' ..."
-    Expand-7Zip -FullName $msysXzArchive -DestinationPath $deployArea > $null
-    Expand-7Zip -FullName $msysTarName -DestinationPath $deployArea -Remove > $null
+    New-Item -Force -Type Directory -Name $deployArea
+    tar xf $msysXzArchive -C $deployArea
     Write-Host " Done."
 }
 
