@@ -75,7 +75,7 @@ function step-materialize-dependencies {
 
 function step-extract-archive {
     Write-Host -NoNewline "Extracting archives '$msysXzArchive' to '$deployArea' ..."
-    New-Item -Force -Type Directory -Name $deployArea
+    New-Item -Force -Type Directory -Name $deployArea > $null
     tar xf $msysXzArchive -C $deployArea
     Write-Host " Done."
 }
@@ -87,9 +87,9 @@ function step-setup-install {
     Write-Host " Done."
 
     # Patching path ... (Fixme: Find something better than this ugly command line)
-    Write-Host -NoNewline "Patching bash path to have C:\\Python39 and C:\\Program Files\\Perforce in path ..."
+    Write-Host -NoNewline "Patching bash path to have Python313 and C:\\Program Files\\Perforce in path ..."
     Start-Process -Wait -UseNewEnvironment -FilePath $shCmd `
-        -ArgumentList 'dash -c "echo ''PATH=$PATH:/c/Python39:/c/Python39/Scripts:/c/Program\ Files/Perforce:/c/Program\ Files/Perforce/DVCS:/c/Program\ Files/Git/cmd; export PATH'' >> ~/.bash_profile"'
+        -ArgumentList 'dash -c "echo ''PATH=$PATH:/c/Python313:/c/Python313/Scripts:/c/Program\ Files/Perforce:/c/Program\ Files/Perforce/DVCS:/c/Program\ Files/Git/cmd; export PATH'' >> ~/.bash_profile"'
     Write-Host " Done."
 
     Write-Host -NoNewline "Customize mintty cursor ..."
