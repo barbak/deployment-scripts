@@ -73,7 +73,7 @@ function step-materialize-dependencies {
 
 function step-extract-archive {
     Write-Host -NoNewline "Extracting archives '$deployArea/$msysArchiveName' to '$deployArea' ..."
-    New-Item -Force -Type Directory -Name $deployArea > $null
+    New-Item -Force -Type Directory -Path $deployArea > $null
     tar xf $deployArea/$msysArchiveName -C $deployArea
     Write-Host " Done."
 }
