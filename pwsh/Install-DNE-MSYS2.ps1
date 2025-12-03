@@ -16,7 +16,7 @@
 
 .NOTES
     Originally, the script was intended to be used by Patoune.
-    Last SUCCESSFUL TEST DATE: 2024 11 13
+    Last SUCCESSFUL TEST DATE: 2025 12 03
 #>
 
 param(
@@ -26,9 +26,7 @@ param(
     [Alias("pae")]
     [bool]$pauseAtEnd=$false
 )
-
-$msysArchiveBaseName="msys2-base-x86_64-20250830"
-$msysXzArchive="$deployArea\$msysArchiveBaseName.tar.xz"
+$msysArchiveName="msys2-x86_64-latest.tar.xz"
 
 $shCmd="$deployArea\msys64\msys2.exe"
 
@@ -60,23 +58,23 @@ function Install-MSYS2 {
 function step-materialize-dependencies {
     $ProgressPreferenceBackup = $Global:ProgressPreference
     $Global:ProgressPreference = 'SilentlyContinue'
-    if (-not(Test-Path $msysXzArchive)) {
-        Write-Host -NoNewline "Downloading archive 'http://repo.msys2.org/distrib/x86_64/$msysArchiveBaseName.tar.xz' in '$msysXzArchive'."
+    if (-not(Test-Path "$deployArea/$msysArchiveName")) {
+        Write-Host -NoNewline "Downloading archive 'http://repo.msys2.org/distrib/$msysArchiveName' in '$deployArea/$msysArchiveName'."
         Start-BitsTransfer `
-            -Source "http://repo.msys2.org/distrib/x86_64/$msysArchiveBaseName.tar.xz" `
-            -Destination $msysXzArchive
+            -Source "http://repo.msys2.org/distrib/$msysArchiveName" `
+            -Destination "$deployArea/$msysArchive"
 
         Write-Host " Done."
     } else {
-      Write-Host "Archive already downloaded in '$msysXzArchive'"
+      Write-Host "Archive already downloaded in '$deployArea/$msysArchiveName'"
     }
     $Global:ProgressPreference = $ProgressPreferenceBackup
 }
 
 function step-extract-archive {
-    Write-Host -NoNewline "Extracting archives '$msysXzArchive' to '$deployArea' ..."
+    Write-Host -NoNewline "Extracting archives '$deployArea/$msysArchiveName' to '$deployArea' ..."
     New-Item -Force -Type Directory -Name $deployArea > $null
-    tar xf $msysXzArchive -C $deployArea
+    tar xf $deployArea/$msysArchiveName -C $deployArea
     Write-Host " Done."
 }
 
